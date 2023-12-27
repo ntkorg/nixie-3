@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.cargo.target": "aarch64-nintendo-switch-freestanding",
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "rust-analyzer.check.targets": "aarch64-nintendo-switch-freestanding",
+    "rust-analyzer.check.allTargets": false,
+}
