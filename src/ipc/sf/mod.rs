@@ -1,5 +1,7 @@
 use core::{iter::zip, prelude::v1};
 
+use zerocopy::{AsBytes, FromBytes};
+
 use crate::{
     ipc::{cmif::*, hipc::Header},
     svc,
@@ -39,7 +41,7 @@ impl<'a, T> Buffer<'a, T> {
     pub fn from_slice(kind: BufferKind, data: &'a [T]) -> Self { Self { kind, data } }
 }
 
-pub struct RequestContext<'a, D> {
+pub struct RequestContext<'a, D: Copy + AsBytes> {
     send_pid: bool,
     objects: heapless::Vec<u32, 8>,
     hipc_send_handles: heapless::Vec<u32, 8>,
@@ -53,7 +55,7 @@ pub struct RequestContext<'a, D> {
     data: &'a [D],
 }
 
-impl<'a, D> RequestContext<'a, D> {
+impl<'a, D: Copy + AsBytes> RequestContext<'a, D> {
     pub fn new_from(data: &'a D) -> Self {
         RequestContext::new_from_slice(core::slice::from_ref(data))
     }
@@ -182,7 +184,7 @@ impl<'a, D> RequestContext<'a, D> {
     }
 }
 
-pub struct Response<'a, D> {
+pub struct Response<'a, D: Copy + FromBytes> {
     objects: heapless::Vec<u32, 8>,
     hipc_send_handles: heapless::Vec<u32, 8>,
     hipc_move_handles: heapless::Vec<u32, 8>,
@@ -191,7 +193,7 @@ pub struct Response<'a, D> {
     data: &'a [D],
 }
 
-impl<'a, D> Response<'a, D> {
+impl<'a, D: Copy + FromBytes> Response<'a, D> {
     pub fn new(
         objects: heapless::Vec<u32, 8>,
         hipc_send_handles: heapless::Vec<u32, 8>,
@@ -223,156 +225,133 @@ impl<'a, D> Response<'a, D> {
     pub fn get_pid(&mut self) -> u64 { self.pid.unwrap() }
 }
 
-fn copy_to_tls<T: Copy>(tls_offset: usize, data: &[T]) {
-    let tls_data = tls::slice_offset_mut(tls_offset, data.len());
-    for (tls_data, data) in zip(tls_data.iter_mut(), data.iter()) {
-        *tls_data = *data;
-    }
+pub struct HipcSizes{
+    hipc_data_size: u16,
+    domain_data_size: u16,
 }
 
-fn copy_from_tls<T: Copy>(tls_offset: usize, data: &mut heapless::Vec<T, 8>) {
-    let tls_data = tls::slice_offset(tls_offset, data.len());
-    for tls_data in tls_data.iter() {
-        data.push(*tls_data).unwrap();
+fn sizes_from_request<Srv, Req: Copy + AsBytes>(service: &Service<Srv>, request_context: &RequestContext<'_, Req>) -> HipcSizes {
+    let mut sizes = HipcSizes {
+        hipc_data_size: 16,
+        domain_data_size: (core::mem::size_of::<cmif::InHeader>()
+        + (request_context.data.len() * core::mem::size_of::<Req>())) as u16,
+    };
+    
+    if !service.is_root {
+        sizes.hipc_data_size += core::mem::size_of::<cmif::DomainInHeader>() as u16;
+        sizes.hipc_data_size += core::mem::size_of::<u32>() as u16 * request_context.objects.len() as u16;
     }
+    
+    sizes.hipc_data_size += sizes.domain_data_size;
+
+    sizes
 }
 
-pub fn invoke_service_request<Srv, Req, Res, Out>(
+pub fn invoke_service_request<Srv, Req: Copy + AsBytes, Res: Copy + FromBytes, Out>(
     service: Service<Srv>,
     request_context: &RequestContext<'_, Req>,
     response_handler: fn(&RequestContext<'_, Req>, Response<'_, Res>) -> Result<Out, ResultCode>,
 ) -> Result<Out, ResultCode> {
-    let mut tls_offset = 0;
-    let mut header: &mut Header = unsafe { tls::transmute_offset_mut(tls_offset) };
+    let mut writer = tls::get_writer(0, 0x100);
+    let has_special_header = request_context.send_pid
+        || request_context.hipc_send_handles.len() > 0
+        || request_context.hipc_move_handles.len() > 0;
 
-    header.set_send_static_count(request_context.hipc_send_statics.len() as u8);
-    header.set_send_buffer_count(request_context.hipc_send_buffers.len() as u8);
-    header.set_receive_buffer_count(request_context.hipc_receive_buffers.len() as u8);
-    header.set_exchange_buffer_count(request_context.hipc_exchange_buffers.len() as u8);
-    header.set_special_header(
-        request_context.send_pid
-    || !request_context.hipc_move_handles.is_empty()
-    || !request_context.hipc_send_handles.is_empty(),
+    let sizes = sizes_from_request(&service, request_context);
+
+    writer.write(Header::default()
+        .with_request_type(cmif::CommandType::Request as u16)
+        .with_data_words(sizes.hipc_data_size / 4)
+        .with_special_header(has_special_header)
+        .with_send_static_count(request_context.hipc_send_statics.len() as u8)
+        .with_send_buffer_count(request_context.hipc_send_buffers.len() as u8)
+        .with_receive_buffer_count(request_context.hipc_receive_buffers.len() as u8)
+        .with_exchange_buffer_count(request_context.hipc_exchange_buffers.len() as u8)
     );
 
-    tls_offset += core::mem::size_of::<Header>();
-
-    if header.has_special_header() {
-        unsafe {
-            *tls::transmute_offset_mut(tls_offset) = hipc::SpecialHeader::new(
-                request_context.send_pid,
-                request_context.hipc_send_handles.len() as u8,
-                request_context.hipc_move_handles.len() as u8,
-            );
-        }
-
-        tls_offset += core::mem::size_of::<hipc::SpecialHeader>();
+    if has_special_header {
+        writer.write(hipc::SpecialHeader::new(
+            request_context.send_pid,
+            request_context.hipc_send_handles.len() as u8,
+            request_context.hipc_move_handles.len() as u8,
+        ));
 
         if request_context.send_pid {
-            unsafe {
-                *tls::transmute_offset_mut(tls_offset) = 0usize;
-            }
-
-            tls_offset += core::mem::size_of::<u64>();
+            writer.write(0 as usize)
         }
 
-        copy_to_tls(tls_offset, &request_context.hipc_send_handles);
-        tls_offset += core::mem::size_of::<u32>() * request_context.hipc_send_handles.len();
-
-        copy_to_tls(tls_offset, &request_context.hipc_move_handles);
-        tls_offset += core::mem::size_of::<u32>() * request_context.hipc_move_handles.len();
+        writer.write_vec(&request_context.hipc_send_handles);
+        writer.write_vec(&request_context.hipc_move_handles);
     }
 
-    tls_offset = align_up(tls_offset, 4);
+    writer.write_vec(&request_context.hipc_send_statics);
+    writer.write_vec(&request_context.hipc_send_buffers);
+    writer.write_vec(&request_context.hipc_receive_buffers);
+    writer.write_vec(&request_context.hipc_exchange_buffers);
 
-    copy_to_tls(tls_offset, &request_context.hipc_send_statics);
-    tls_offset += core::mem::size_of::<hipc::Static>() * request_context.hipc_send_statics.len();
+    writer.align_to(16);
 
-    copy_to_tls(tls_offset, &request_context.hipc_send_buffers);
-    tls_offset += core::mem::size_of::<hipc::Buffer>() * request_context.hipc_send_buffers.len();
-
-    copy_to_tls(tls_offset, &request_context.hipc_receive_buffers);
-    tls_offset += core::mem::size_of::<hipc::Buffer>() * request_context.hipc_receive_buffers.len();
-
-    copy_to_tls(tls_offset, &request_context.hipc_exchange_buffers);
-    tls_offset +=
-        core::mem::size_of::<hipc::Buffer>() * request_context.hipc_exchange_buffers.len();
-
-    tls_offset = align_up(tls_offset, 8);
-
-    let in_size = (core::mem::size_of::<cmif::InHeader>()
-        + (request_context.data.len() * core::mem::size_of::<Req>()))
-        as u16;
-    let mut data_size = 16 + in_size as u16;
     if !service.is_root {
-        let cmif_domain_header =
-            unsafe { tls::transmute_offset_mut::<cmif::DomainInHeader>(tls_offset) };
-        cmif_domain_header.set_object_count(request_context.objects.len() as u8);
-        cmif_domain_header.set_data_size(in_size);
-        data_size += core::mem::size_of::<cmif::DomainInHeader>() as u16;
-        tls_offset += core::mem::size_of::<cmif::DomainInHeader>();
+        writer.write(
+            cmif::DomainInHeader::default()
+                .with_command_type(DomainCommandType::Request)
+                .with_object_count(request_context.objects.len() as u8)
+                .with_data_size(sizes.domain_data_size),
+        );
 
-        copy_to_tls(tls_offset, &request_context.objects);
-        tls_offset += core::mem::size_of::<u32>() * request_context.objects.len();
+        writer.write_vec(&request_context.objects);
     }
 
-    header.set_data_words(data_size / 4);
+    writer.write(cmif::InHeader::default().with_command(CommandType::Request as u32));
+    writer.write_vec(&request_context.data);
 
-    copy_to_tls(tls_offset, &request_context.hipc_receive_statics);
+    writer.align_to(16);
+
+    writer.write_vec(&request_context.hipc_receive_statics);
 
     service.handle.send_sync_request()?;
 
-    let mut tls_offset = 0;
-    let mut header: &Header = unsafe { tls::transmute_offset(tls_offset) };
-    tls_offset += core::mem::size_of::<Header>();
+    let mut reader = tls::get_reader(0, 0x100);
+
+    let header: Header = reader.read();
+
+    let hipc_send_statics = reader.read_vec(header.send_static_count() as usize);
 
     let mut hipc_send_handles = heapless::Vec::<u32, 8>::new();
     let mut hipc_move_handles = heapless::Vec::<u32, 8>::new();
     let mut pid = None;
+
     if header.has_special_header() {
-        let special_header: &hipc::SpecialHeader = unsafe { tls::transmute_offset(tls_offset) };
-        tls_offset += core::mem::size_of::<hipc::SpecialHeader>();
+        let special_header: hipc::SpecialHeader = reader.read();
 
         if special_header.has_pid() {
-            pid = Some(unsafe { *tls::transmute_offset::<u64>(tls_offset) });
-            tls_offset += core::mem::size_of::<u64>();
+            pid = Some(reader.read());
         }
 
-        copy_from_tls(tls_offset, &mut hipc_send_handles);
-        tls_offset += core::mem::size_of::<u32>() * special_header.copy_handle_count() as usize;
-
-        copy_from_tls(tls_offset, &mut hipc_move_handles);
-        tls_offset += core::mem::size_of::<u32>() * special_header.move_handle_count() as usize;
+        reader.read_into_vec(&mut hipc_send_handles, special_header.copy_handle_count() as usize);
+        reader.read_into_vec(&mut hipc_move_handles, special_header.move_handle_count() as usize);
     }
 
-    let mut hipc_send_statics = heapless::Vec::<hipc::Static, 8>::new();
-    copy_from_tls(tls_offset, &mut hipc_send_statics);
-    tls_offset += core::mem::size_of::<hipc::Static>() * header.send_static_count() as usize;
+    reader.align_to(16);
 
     let mut data_size = header.data_words() as usize * 4 - core::mem::size_of::<cmif::InHeader>();
 
-    tls_offset = align_up(tls_offset, 8);
     let mut cmif_object_ids = heapless::Vec::<u32, 8>::new();
     if !service.is_root {
-        let cmif_domain_header =
-            unsafe { tls::transmute_offset::<cmif::DomainOutHeader>(tls_offset) };
-        tls_offset += core::mem::size_of::<cmif::DomainOutHeader>();
-
-        copy_from_tls(tls_offset, &mut cmif_object_ids);
-        tls_offset += core::mem::size_of::<u32>() * cmif_domain_header.object_count() as usize;
-
-        data_size -= core::mem::size_of::<cmif::DomainOutHeader>()
-            + core::mem::size_of::<u32>() * cmif_domain_header.object_count() as usize;
+        let domain_header = reader.read::<cmif::DomainInHeader>();
+        reader.read_into_vec(&mut cmif_object_ids, domain_header.object_count() as usize);
+        
+        data_size -= core::mem::size_of::<cmif::DomainInHeader>()
+            + core::mem::size_of::<u32>() * domain_header.object_count() as usize;
     }
 
-    let cmif_header = unsafe { tls::transmute_offset::<cmif::OutHeader>(tls_offset) };
-    tls_offset += core::mem::size_of::<cmif::OutHeader>();
+    let cmif_header = reader.read::<cmif::OutHeader>();
 
     if cmif_header.result().is_failure() {
         return Err(cmif_header.result());
     }
-
-    let data = tls::slice_offset(tls_offset, data_size / core::mem::size_of::<Res>());
+    
+    let data = reader.read_slice::<Res>(data_size / core::mem::size_of::<Res>());
 
     let response = Response::new(
         cmif_object_ids,

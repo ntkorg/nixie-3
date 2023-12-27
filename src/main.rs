@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
-#![feature(naked_functions)]
 #![no_std]
 #![no_main]
 
