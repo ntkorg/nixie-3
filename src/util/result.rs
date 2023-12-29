@@ -25,3 +25,7 @@ impl ResultCode {
     pub const fn is_success(&self) -> bool { self.value == 0 }
     pub const fn is_failure(&self) -> bool { !self.is_success() }
 }
+
+impl From<ResultCode> for u32 {
+    fn from(value: ResultCode) -> Self { value.value() }
+}

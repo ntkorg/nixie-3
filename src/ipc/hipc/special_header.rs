@@ -1,9 +1,9 @@
 use zerocopy_derive::{FromBytes, FromZeroes, AsBytes};
 
 #[derive(Copy, Clone, Default, Debug, FromBytes, FromZeroes, AsBytes)]
-#[repr(C)]
+#[repr(C, packed)]
 pub struct SpecialHeader {
-    block: u32,
+    pub block: u32,
 }
 
 impl SpecialHeader {

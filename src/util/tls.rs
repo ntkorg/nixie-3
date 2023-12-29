@@ -31,25 +31,3 @@ pub fn get_reader<'a>(offset: usize, size: usize) -> Reader<'a> {
         Reader::new(core::slice::from_raw_parts(get(offset), size))
     }
 }
-
-// pub unsafe fn transmute_offset<T>(offset: usize) -> &'static T {
-//     transmute_ref(&*get(offset))
-// }
-
-// pub unsafe fn transmute_offset_mut<T>(offset: usize) -> &'static mut T {
-//     transmute_mut(&mut *get_mut(offset))
-// }
-
-// pub fn slice_offset_mut<'a, T>(offset: usize, size: usize) -> &'a mut [T] {
-//     let ptr: *mut u8 = get_mut(offset);
-//     unsafe {
-//         core::slice::from_raw_parts_mut(ptr as *mut T, size)
-//     }
-// }
-
-// pub fn slice_offset<'a, T>(offset: usize, size: usize) -> &'a [T] {
-//     let ptr: *const u8 = get(offset);
-//     unsafe {
-//         core::slice::from_raw_parts(ptr as *const T, size)
-//     }
-// }

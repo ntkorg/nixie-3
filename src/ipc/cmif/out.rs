@@ -4,7 +4,7 @@ use crate::util::result::{ResultCode, RESULT_SUCCESS};
 use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
 
 #[derive(Copy, Clone, Debug, FromBytes, FromZeroes, AsBytes)]
-#[repr(C)]
+#[repr(C, packed)]
 pub struct OutHeader {
     magic: MagicU32,
     version: u32,

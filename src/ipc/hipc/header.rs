@@ -15,7 +15,7 @@ impl Header {
     pub fn receive_buffer_count(&self) -> u8 { ((self.block_1 >> 8) & 0xF) as u8 }
     pub fn exchange_buffer_count(&self) -> u8 { ((self.block_1 >> 12) & 0xF) as u8 }
     pub fn data_words(&self) -> u16 { ((self.block_2) & 0x3FF) as u16 }
-    pub fn has_special_header(&self) -> bool { ((self.block_2 >> 27) & 1) != 0 }
+    pub fn has_special_header(&self) -> bool { ((self.block_2 >> 31) & 1) != 0 }
 
     pub fn set_request_type(&mut self, request_type: u16) { self.request_type = request_type }
     pub fn set_send_static_count(&mut self, send_static_count: u8) { 

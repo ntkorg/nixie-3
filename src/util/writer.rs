@@ -6,6 +6,11 @@ use zerocopy_derive::{FromBytes, FromZeroes, AsBytes};
 
 use super::align::align_up;
 
+pub enum WriteError {
+    TooMuchData,
+    OutOfBounds,
+}
+
 pub struct Writer<'a> {
     slice: &'a mut [u8],
     offset: usize,
@@ -19,19 +24,27 @@ impl<'a> Writer<'a> {
         }
     }
     
-    pub fn write<T: Copy + AsBytes>(&mut self, value: T) {
+    pub fn write<T: Copy + AsBytes>(&mut self, value: T) -> Result<(), WriteError> {
         let size = core::mem::size_of::<T>();
-        value.write_to(&mut self.slice[self.offset..self.offset + size]);
+        
+        let slice = self.slice.get_mut(self.offset..self.offset + size).ok_or(WriteError::OutOfBounds)?;
+        value.write_to(slice).ok_or(WriteError::TooMuchData)?;
         self.offset += size;
+        Ok(())
     }
 
-    pub fn write_vec<T: Copy + AsBytes>(&mut self, value: &[T]) {
+    pub fn write_vec<T: Copy + AsBytes>(&mut self, value: &[T]) -> Result<(), WriteError> {
         let size = core::mem::size_of::<T>();
-        value.write_to(&mut self.slice[self.offset..self.offset + size * value.len()]);
+        let slice = self.slice.get_mut(self.offset..self.offset + size * value.len()).ok_or(WriteError::OutOfBounds)?;
+        value.write_to(slice).ok_or(WriteError::TooMuchData)?;
         self.offset += size * value.len();
+        Ok(())
     }
 
     pub fn align_to(&mut self, alignment: usize) {
-        self.offset = align_up(self.offset, alignment);
+        let end = align_up(self.offset, alignment);
+        // for safety and less debugging confusion, fill the padding with zeroes
+        self.slice.get_mut(self.offset..end.max(self.slice.len())).map(|slice| slice.fill(0));
+        self.offset = end;
     }
 }

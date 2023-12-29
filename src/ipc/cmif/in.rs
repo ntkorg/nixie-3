@@ -12,7 +12,7 @@ pub struct InHeader {
 impl Default for InHeader {
     fn default() -> Self {
         Self {
-            magic: MagicU32::new(*b"SFCI"),
+            magic: b"SFCI".into(),
             version: 0,
             command: 0,
             token: 0,
