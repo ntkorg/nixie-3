@@ -1,7 +1,6 @@
-cargo build
-rm -rf ./target/aarch64-nintendo-switch-freestanding/debug/exefs
-mkdir -p ./target/aarch64-nintendo-switch-freestanding/debug/exefs
-elf2nso ./target/aarch64-nintendo-switch-freestanding/debug/nixie-core ./target/aarch64-nintendo-switch-freestanding/debug/exefs/main
-cp main.npdm ./target/aarch64-nintendo-switch-freestanding/debug/exefs
-build_pfs0 ./target/aarch64-nintendo-switch-freestanding/debug/exefs ./target/aarch64-nintendo-switch-freestanding/debug/exefs.nsp
-curl -T ./target/aarch64-nintendo-switch-freestanding/debug/exefs.nsp ftp://anon:non@192.168.1.136:5000/atmosphere/contents/01002B30028F6000/exefs.nsp
+if (cargo nx build); then
+  llvm-objdump target/aarch64-nintendo-switch-freestanding/debug/nixie-core -d > disassembly.txt
+  llvm-objdump target/aarch64-nintendo-switch-freestanding/debug/nixie-core -d --demangle > disassembly.demangled.txt
+  # ~/Downloads/ryujinx-1.1.1217-linux_x64/publish/Ryujinx ./target/aarch64-nintendo-switch-freestanding/debug/nixie-core.nsp
+  curl -T ./target/aarch64-nintendo-switch-freestanding/debug/nixie-core.nsp ftp://rose:Rosefu11y!@192.168.1.136:5000/atmosphere/contents/0100F2C0115B6000/exefs.nsp
+fi

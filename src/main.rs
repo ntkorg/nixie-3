@@ -2,21 +2,33 @@
 #![allow(unused_imports)]
 #![feature(panic_info_message)]
 #![feature(generic_const_exprs)]
+#![feature(gen_blocks)]
 #![no_std]
 #![no_main]
 
-use core::arch::{asm, global_asm};
-use core::panic::PanicInfo;
+#[macro_use]
+extern crate alloc;
 
-use ipc::services::ServiceRoot;
+use core::arch::{asm, global_asm};
+use core::fmt::Write;
+use core::panic::PanicInfo;
+use core::ptr::write_bytes;
+use core::time::Duration;
+
+use heapless::String;
 use ipc::services::am::ApplicationManagerOE;
 use ipc::services::lm::LogManager;
 use ipc::services::sm::{ServiceManager, ServiceName};
+use ipc::services::ServiceRoot;
 use ipc::sf::Error;
-use util::{magic::reverse_magic, tls};
+use svc::{output_debug_string, sleep_thread};
+use util::{allocator, tls};
 use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
 
 use crate::reloc::relocate_self;
+use crate::svc::process::{self, capability, CreateProcessFlags, CreateProcessParams};
+use crate::svc::{Handle, Process};
+use crate::util::magic::Magic;
 use crate::util::module::{get_global_ptr_mut, transmute_offset};
 
 mod ipc;
@@ -26,89 +38,122 @@ mod util;
 
 #[panic_handler]
 fn panic_handler(info: &PanicInfo) -> ! {
-    info.message().map(|m| {
-        m.as_str().map(|s| {
-            let bytes = s.as_bytes();
-            _ = tls::get_writer(0, bytes.len()).write_vec(bytes);
-            svc::panic(1, s.as_ptr() as usize, s.len());
-        });
+  tls::dump();
 
-        svc::panic(3, 0, 0);
-    });
-    svc::panic(2, 1, 0);
+  output_debug_string("Panic!");
+  if !allocator::is_initialized() {
+    output_debug_string("not initialized, panicked at");
+    if let Some(location) = info.location() {
+      output_debug_string(location.file());
+    }
+  };
+
+  let mut str: String<0x2000> = String::new();
+  write!(&mut str, "{}", info).unwrap();
+  output_debug_string(str.as_str());
+  svc::panic(2, 1, 0);
 }
 
 #[derive(FromZeroes, FromBytes, AsBytes)]
 #[repr(C)]
 struct ModuleStart {
-    branch_inst: u32,
-    mod0_offset: u32,
+  branch_inst: u32,
+  mod0_offset: u32,
 }
 
 #[derive(FromZeroes, FromBytes, AsBytes)]
 #[repr(C)]
 struct Mod0 {
-    magic: u32,
-    dynamic_offset: u32,
-    bss_start_offset: u32,
-    bss_end_offset: u32,
-    eh_start_offset: u32,
-    eh_end_offset: u32,
-    runtime_module_offset: u32,
+  magic: u32,
+  dynamic_offset: u32,
+  bss_start_offset: u32,
+  bss_end_offset: u32,
+  eh_start_offset: u32,
+  eh_end_offset: u32,
+  runtime_module_offset: u32,
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn startup(_x0: usize, _x1: usize) -> ! {
-    let module_start = transmute_offset::<ModuleStart>(0);
-    let mod0 = transmute_offset::<Mod0>(module_start.mod0_offset as usize);
+  let module_start = unsafe { transmute_offset::<ModuleStart>(0) };
+  let mod0 = unsafe { transmute_offset::<Mod0>(module_start.mod0_offset as usize) };
+  let mut log: String<4096> = String::new();
 
-    let bss_width = mod0.bss_end_offset - mod0.bss_start_offset;
-    let bss_ptr = get_global_ptr_mut(mod0.bss_start_offset as usize);
+  let bss_width = mod0.bss_end_offset - mod0.bss_start_offset;
+  let bss_ptr =
+    unsafe { get_global_ptr_mut((module_start.mod0_offset + mod0.bss_start_offset) as usize) };
 
-    let bss_section = core::slice::from_raw_parts_mut(bss_ptr, bss_width as usize);
+  {
+    let mut writer = tls::get_writer(0, 0xFF);
+    writer.write(bss_width).unwrap();
+    writer
+      .write((module_start.mod0_offset + mod0.bss_start_offset) as usize)
+      .unwrap();
+  }
+  output_debug_string("hey look");
+  // tls::dump();
 
-    bss_section.fill(0);
+  // write_bytes(bss_ptr, 0, bss_width as _);
 
-    relocate_self(mod0);
+  output_debug_string("in god we rust");
 
-    let sm =
-        ServiceManager::connect().unwrap_or_else(|res| svc::panic(10, res.value() as usize, 0));
-    if let Err(err) = sm.register_client() {
-        match err {
-            Error::InvalidRequest(_) => svc::panic(11, 0, 0),
-            Error::InvalidResponse(_) => svc::panic(12, 0, 0),
-            Error::RequestError(res) => svc::panic(13, res.value() as usize, 0),
-            Error::ResponseError(res) => svc::panic(14, res.value() as usize, 0),
-            Error::NoMoveHandle => svc::panic(15, 0, 0),
-            Error::NoSendHandle => svc::panic(16, 0, 0),
-            Error::NoObject => svc::panic(17, 0, 0),
-            Error::NoPid => svc::panic(18, 0, 0),
-            Error::NoStatic => svc::panic(19, 0, 0),
-            Error::NotEnoughData => svc::panic(20, 0, 0),
-            Error::InvalidData => svc::panic(21, 0, 0),
-        }
-    }
+  unsafe { relocate_self(module_start.mod0_offset + mod0.dynamic_offset) }
 
-    // let am = ApplicationManagerOE::open(&sm).unwrap_or_else(|_| svc::panic(30, 0, 0));
-    // let ap = am.open_application_proxy().unwrap_or_else(|err| match err {
-    //     Error::InvalidRequest(_) => svc::panic(31, 0, 0),
-    //     Error::InvalidResponse(_) => svc::panic(32, 0, 0),
-    //     Error::RequestError(res) => svc::panic(33, res.value() as usize, 0),
-    //     Error::ResponseError(res) => svc::panic(34, res.value() as usize, 0),
-    //     Error::NoMoveHandle => svc::panic(35, 0, 0),
-    //     Error::NoSendHandle => svc::panic(36, 0, 0),
-    //     Error::NoObject => svc::panic(37, 0, 0),
-    //     Error::NoPid => svc::panic(38, 0, 0),
-    //     Error::NoStatic => svc::panic(39, 0, 0),
-    //     Error::NotEnoughData => svc::panic(40, 0, 0),
-    //     Error::InvalidData => svc::panic(41, 0, 0),
-    // });
-    svc::panic(3, 2, 1);
+  allocator::initialize(0x200000).unwrap();
 
-    // loop {}
+  let sm = ServiceManager::connect().unwrap();
+  sm.register_client().unwrap();
+
+  fn write_text<F: FnOnce(&mut dyn Write) -> core::fmt::Result>(closure: F) {
+    let mut str: String<0x2000> = String::new();
+    closure(&mut str).unwrap();
+    output_debug_string(str.as_str());
+  }
+
+  // let create_params = CreateProcessParams {
+  //   name: b"svctest".try_into().unwrap(),
+  //   process_category: 1,
+  //   code_addr: 128 * 1024 * 1024,
+  //   code_num_pages: 1,
+  //   title_id: 0x0100000010101010,
+  //   flags: CreateProcessFlags::new()
+  //     .with_instruction_set(svc::process::InstructionSet::Aarch32)
+  //     .with_enable_debug(true)
+  //     .with_address_space(3)
+  //     .with_is_app(true),
+  //   system_resource_num_pages: 0,
+  // };
+
+  // let proc: Handle<Process> = Handle::<Process>::create(create_params, &[
+  //   capability::program_type(capability::ApplicationType::Application),
+  //   capability::debug_flags(true, true),
+  //   capability::kernel_version(9, 0),
+  //   capability::thread_info(0..=63, 0..=63),
+  //   capability::handle_table_size(512),
+  // ]).unwrap();
+
+  // proc.terminate().unwrap();
+
+  // let vi = ipc::services::vi::ViUser::open(&sm).unwrap();
+
+  // let display_service = vi.get_display_service().unwrap();
+
+  // let display = display_service
+  // .open_display("Default".try_into().unwrap())
+  // .unwrap();
+
+  // write_text(|s| s.write_fmt(format_args!("Display: {display:?}")));
+
+  // let layer = display_service.create_stray_layer(&display, None).unwrap();
+
+  // let binder = display_service.get_relay_service().unwrap();
+
+  loop {
+    sleep_thread(Duration::from_secs(1))
+  }
 }
 global_asm!(
-    r#"
+  r#"
 .section .text.jmp, "ax", %progbits
 .balign 4
 .global beginning

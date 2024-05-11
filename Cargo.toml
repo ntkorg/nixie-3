@@ -1,7 +1,9 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "nixie-core"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,6 +11,8 @@ edition = "2021"
 zerocopy = { version = "0.7.28", default-features = false }
 zerocopy-derive = "0.7.28"
 heapless = "0.8.0"
+good_memory_allocator = "0.1.7"
+bitfield-struct = "0.6.1"
 
 [package.metadata.nx.nsp.npdm]
 name = "Amongussy"
