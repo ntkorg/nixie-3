@@ -44,4 +44,9 @@ impl Parcel {
 
     self.align()
   }
+
+  pub fn write_interface_token(&mut self, string: &str) {
+    self.write(0x100u32);
+    self.write_string(string)
+  }
 }

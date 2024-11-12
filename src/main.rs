@@ -25,6 +25,7 @@ use svc::{output_debug_string, sleep_thread};
 use util::{allocator, tls};
 use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
 
+use crate::ipc::services::binder::Binder;
 use crate::reloc::relocate_self;
 use crate::svc::process::{self, capability, CreateProcessFlags, CreateProcessParams};
 use crate::svc::{Handle, Process};
@@ -134,19 +135,20 @@ pub unsafe extern "C" fn startup(_x0: usize, _x1: usize) -> ! {
 
   // proc.terminate().unwrap();
 
-  // let vi = ipc::services::vi::ViUser::open(&sm).unwrap();
+  let vi = ipc::services::vi::ViUser::open(&sm).unwrap();
 
-  // let display_service = vi.get_display_service().unwrap();
+  let display_service = vi.get_display_service().unwrap();
 
-  // let display = display_service
-  // .open_display("Default".try_into().unwrap())
-  // .unwrap();
+  let display = display_service
+  .open_display("Default".try_into().unwrap())
+  .unwrap();
 
-  // write_text(|s| s.write_fmt(format_args!("Display: {display:?}")));
+  write_text(|s| s.write_fmt(format_args!("Display: {display:?}")));
 
-  // let layer = display_service.create_stray_layer(&display, None).unwrap();
+  let layer = display_service.create_stray_layer(&display, None).unwrap();
 
-  // let binder = display_service.get_relay_service().unwrap();
+  let binder = Binder::from_layer(&layer, &display_service).unwrap();
+
 
   loop {
     sleep_thread(Duration::from_secs(1))
