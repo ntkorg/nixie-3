@@ -224,3 +224,14 @@ pub fn output_debug_bytes(string: &[u8]) {
     )
   }
 }
+
+#[macro_export]
+macro_rules! output_debug_format {
+  ($($arg:tt)*) => {
+    {
+      let mut str: String<0x2000> = String::new();
+      str.write_fmt(format_args!($($arg)*)).unwrap();
+      output_debug_string(str.as_str());
+    }
+  };
+}

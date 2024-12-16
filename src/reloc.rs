@@ -1,12 +1,12 @@
+use crate::Mod0;
 use crate::reloc::DynTags::Unknown;
 use crate::svc::output_debug_string;
 use crate::util::module::{get_global_ptr, get_global_ptr_mut, get_module_start};
-use crate::Mod0;
 use core::fmt::Write;
 use core::mem::size_of;
 use heapless::String;
-use zerocopy::macro_util::transmute_ref;
 use zerocopy::AsBytes;
+use zerocopy::macro_util::transmute_ref;
 use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
 
 #[derive(PartialEq, Eq)]
@@ -126,13 +126,13 @@ pub struct ElfDyn {
 }
 
 pub unsafe fn relocate_self(dynamic_offset: u32) {
-  let mut current_elf_dyn_ptr = get_global_ptr(dynamic_offset as usize);
+  let mut current_elf_dyn_ptr = unsafe { get_global_ptr(dynamic_offset as usize) };
 
-  let mut logstr: String<4096> = String::new();
+  let logstr: String<4096> = String::new();
 
   let mut temp_relocation_info = TemporaryRelocationInfo::default();
   let mut temp_relocation_addend_info = TemporaryRelocationInfo::default();
-  
+
   output_debug_string("taggart");
 
   loop {
@@ -157,7 +157,7 @@ pub unsafe fn relocate_self(dynamic_offset: u32) {
       Unknown(_) => {}
     }
 
-    current_elf_dyn_ptr = current_elf_dyn_ptr.add(size_of::<ElfDyn>());
+    current_elf_dyn_ptr = unsafe { current_elf_dyn_ptr.add(size_of::<ElfDyn>()) };
   }
 
   output_debug_string(&logstr);
@@ -167,7 +167,9 @@ pub unsafe fn relocate_self(dynamic_offset: u32) {
   {
     for relocation in relocation_info.entries::<RelocationEntry>() {
       if RelocationType::AArch64Relative == RelocationType::from(relocation.info.relocation_type) {
-        *(get_global_ptr_mut(relocation.offset as usize) as *mut usize) += get_module_start();
+        unsafe {
+          *(get_global_ptr_mut(relocation.offset as usize) as *mut usize) += get_module_start();
+        }
       }
     }
   }
@@ -177,8 +179,10 @@ pub unsafe fn relocate_self(dynamic_offset: u32) {
   {
     for relocation in relocation_addend_info.entries::<RelocationAddendEntry>() {
       if RelocationType::AArch64Relative == RelocationType::from(relocation.info.relocation_type) {
-        *(get_global_ptr_mut(relocation.offset as usize) as *mut usize) =
-          get_module_start() + relocation.addend as usize;
+        unsafe {
+          *(get_global_ptr_mut(relocation.offset as usize) as *mut usize) =
+            get_module_start() + relocation.addend as usize;
+        }
       }
     }
   }

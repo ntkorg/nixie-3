@@ -16,10 +16,10 @@ use core::ptr::write_bytes;
 use core::time::Duration;
 
 use heapless::String;
+use ipc::services::ServiceRoot;
 use ipc::services::am::ApplicationManagerOE;
 use ipc::services::lm::LogManager;
 use ipc::services::sm::{ServiceManager, ServiceName};
-use ipc::services::ServiceRoot;
 use ipc::sf::Error;
 use svc::{output_debug_string, sleep_thread};
 use util::{allocator, tls};
@@ -27,7 +27,7 @@ use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
 
 use crate::ipc::services::binder::Binder;
 use crate::reloc::relocate_self;
-use crate::svc::process::{self, capability, CreateProcessFlags, CreateProcessParams};
+use crate::svc::process::{self, CreateProcessFlags, CreateProcessParams, capability};
 use crate::svc::{Handle, Process};
 use crate::util::magic::Magic;
 use crate::util::module::{get_global_ptr_mut, transmute_offset};
@@ -74,7 +74,7 @@ struct Mod0 {
   runtime_module_offset: u32,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn startup(_x0: usize, _x1: usize) -> ! {
   let module_start = unsafe { transmute_offset::<ModuleStart>(0) };
   let mod0 = unsafe { transmute_offset::<Mod0>(module_start.mod0_offset as usize) };
@@ -101,6 +101,13 @@ pub unsafe extern "C" fn startup(_x0: usize, _x1: usize) -> ! {
   unsafe { relocate_self(module_start.mod0_offset + mod0.dynamic_offset) }
 
   allocator::initialize(0x200000).unwrap();
+
+  // output_debug_format!("gaming youtube channel ");
+  // loop {
+    // svc::sleep_thread(Duration::MAX);
+  // }
+
+  loop {}
 
   let sm = ServiceManager::connect().unwrap();
   sm.register_client().unwrap();
@@ -140,15 +147,14 @@ pub unsafe extern "C" fn startup(_x0: usize, _x1: usize) -> ! {
   let display_service = vi.get_display_service().unwrap();
 
   let display = display_service
-  .open_display("Default".try_into().unwrap())
-  .unwrap();
+    .open_display("Default".try_into().unwrap())
+    .unwrap();
 
   write_text(|s| s.write_fmt(format_args!("Display: {display:?}")));
 
   let layer = display_service.create_stray_layer(&display, None).unwrap();
 
   let binder = Binder::from_layer(&layer, &display_service).unwrap();
-
 
   loop {
     sleep_thread(Duration::from_secs(1))
