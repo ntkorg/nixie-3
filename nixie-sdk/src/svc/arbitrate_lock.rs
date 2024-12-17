@@ -1,17 +1,20 @@
+use super::{Handle, Thread};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Thread};
 use core::ffi::c_void;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn arbitrate_lock(handle: Handle<Thread>, address: *mut c_void, tag: u32) -> Result<(), ResultCode> {
-
+pub unsafe fn arbitrate_lock(
+  handle: Handle<Thread>,
+  address: *mut c_void,
+  tag: u32,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x1A",
-      
+
       in("w0") handle.as_bits(),
       in("x1") address,
       in("x2") tag,
@@ -30,5 +33,7 @@ pub unsafe fn arbitrate_lock(handle: Handle<Thread>, address: *mut c_void, tag: 
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

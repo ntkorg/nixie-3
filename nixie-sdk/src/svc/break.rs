@@ -6,7 +6,7 @@ pub fn notify(reason: u32, address: u64, size: u64) {
     let updated_reason = reason | 0x80000000;
     asm!(
       "svc #0x26",
-      
+
       in("x0") updated_reason,
       in("x1") address,
       in("x2") size,
@@ -28,7 +28,7 @@ pub fn notify(reason: u32, address: u64, size: u64) {
     let updated_reason = reason | 0x80000000;
     asm!(
       "svc #0x26",
-      
+
       in("w0") updated_reason,
       in("w1") address,
       in("w2") size,
@@ -43,10 +43,10 @@ pub fn notify(reason: u32, address: u64, size: u64) {
 pub fn abort(reason: u32, address: u64, size: u64) -> ! {
   unsafe {
     let updated_reason = reason & 0x7FFFFFFF;
-  
+
     asm!(
       "svc #0x26",
-      
+
       in("x0") updated_reason,
       in("x1") address,
       in("x2") size,

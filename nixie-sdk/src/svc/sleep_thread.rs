@@ -9,7 +9,7 @@ pub fn sleep_thread(time: i64) -> () {
   unsafe {
     asm!(
       "svc #0x0b",
-      
+
       in("x0") time,
       lateout("w0") _,
       lateout("w1") _,
@@ -31,7 +31,7 @@ pub unsafe fn sleep_thread(time: u64) -> () {
   unsafe {
     asm!(
       "svc #0x0b",
-      
+
       in("w0") high,
       in("w1") low,
       lateout("w0") _,

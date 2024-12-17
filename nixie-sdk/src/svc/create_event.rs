@@ -1,6 +1,6 @@
-use core::arch::asm;
-use crate::result::result_code::ResultCode;
 use super::{Handle, ReadableEvent, WritableEvent};
+use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn create_event() -> Result<(Handle<WritableEvent>, Handle<ReadableEvent>), ResultCode> {
@@ -11,7 +11,7 @@ pub fn create_event() -> Result<(Handle<WritableEvent>, Handle<ReadableEvent>), 
   unsafe {
     asm!(
       "svc #0x45",
-      
+
       lateout("w0") error_code,
       lateout("w1") writable_event_handle,
       lateout("w2") readable_event_handle,
@@ -24,11 +24,15 @@ pub fn create_event() -> Result<(Handle<WritableEvent>, Handle<ReadableEvent>), 
   }
 
   if error_code == 0 {
-    return Ok(unsafe{(
-      Handle::<WritableEvent>::from_bits(writable_event_handle),
-      Handle::<ReadableEvent>::from_bits(readable_event_handle),
-    )});
+    return Ok(unsafe {
+      (
+        Handle::<WritableEvent>::from_bits(writable_event_handle),
+        Handle::<ReadableEvent>::from_bits(readable_event_handle),
+      )
+    });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

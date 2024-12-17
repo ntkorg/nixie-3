@@ -5,7 +5,7 @@ pub unsafe fn synchronize_preemption_state() -> () {
   unsafe {
     asm!(
       "svc #0x36",
-      
+
       lateout("x0") _,
       lateout("x1") _,
       lateout("x2") _,

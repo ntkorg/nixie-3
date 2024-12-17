@@ -1,16 +1,19 @@
-use core::arch::asm;
+use super::{Handle, ServerPort};
 use crate::result::result_code::ResultCode;
-use super::{ServerPort, Handle};
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub fn manage_named_port(name: &heapless::String<12>, max_sessions: u32) -> Result<Handle<ServerPort>, ResultCode> {
+pub fn manage_named_port(
+  name: &heapless::String<12>,
+  max_sessions: u32,
+) -> Result<Handle<ServerPort>, ResultCode> {
   let mut error_code: usize;
   let mut server_port_bits: u32;
 
   unsafe {
     asm!(
       "svc #0x71",
-      
+
       in("x1") name.as_ptr(),
       in("w2") max_sessions,
       lateout("x0") error_code,
@@ -25,10 +28,10 @@ pub fn manage_named_port(name: &heapless::String<12>, max_sessions: u32) -> Resu
   }
 
   if error_code == 0 {
-    return Ok(unsafe {
-      Handle::<ServerPort>::from_bits(server_port_bits)
-    });
+    return Ok(unsafe { Handle::<ServerPort>::from_bits(server_port_bits) });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

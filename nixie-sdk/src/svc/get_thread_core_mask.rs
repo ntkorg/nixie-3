@@ -1,6 +1,6 @@
+use super::{Handle, Thread};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Thread};
 
 // core id - int32
 // ideal core
@@ -21,7 +21,7 @@ pub fn get_thread_core_mask(thread: Handle<Thread>) -> Result<(i32, u64), Result
   unsafe {
     asm!(
       "svc #0x0e",
-      
+
       in("x0") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") ideal_core,
@@ -38,7 +38,9 @@ pub fn get_thread_core_mask(thread: Handle<Thread>) -> Result<(i32, u64), Result
     return Ok((ideal_core, affinity_mask));
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -51,7 +53,7 @@ pub fn get_thread_core_mask(thread: Handle<Thread>) -> Result<(i32, u64), Result
   unsafe {
     asm!(
       "svc #0x0e",
-      
+
       in("w0") thread.as_bits(),
       lateout("w0") error_code,
       lateout("w1") ideal_core,
@@ -70,5 +72,7 @@ pub fn get_thread_core_mask(thread: Handle<Thread>) -> Result<(i32, u64), Result
     return Ok((ideal_core, affinity_mask));
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

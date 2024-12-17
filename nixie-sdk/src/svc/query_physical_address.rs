@@ -1,6 +1,6 @@
+use super::PhysicalMemoryInfo;
 use crate::result::result_code::ResultCode;
 use core::{arch::asm, ffi::c_void};
-use super::PhysicalMemoryInfo;
 
 #[cfg(target_pointer_width = "64")]
 pub fn query_physical_address(address: *mut c_void) -> Result<PhysicalMemoryInfo, ResultCode> {
@@ -12,7 +12,7 @@ pub fn query_physical_address(address: *mut c_void) -> Result<PhysicalMemoryInfo
   unsafe {
     asm!(
       "svc #0x54",
-      
+
       in("x1") address,
       lateout("x0") error_code,
       lateout("x1") physical_memory_info_address,
@@ -33,5 +33,7 @@ pub fn query_physical_address(address: *mut c_void) -> Result<PhysicalMemoryInfo
     });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

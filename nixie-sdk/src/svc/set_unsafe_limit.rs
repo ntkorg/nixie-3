@@ -8,7 +8,7 @@ pub unsafe fn set_unsafe_limit(size: usize) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x4A",
-      
+
       in("x0") size,
       lateout("x0") error_code,
       lateout("x1") _,
@@ -25,5 +25,7 @@ pub unsafe fn set_unsafe_limit(size: usize) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

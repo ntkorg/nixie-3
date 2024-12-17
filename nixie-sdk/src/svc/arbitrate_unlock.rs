@@ -9,7 +9,7 @@ pub unsafe fn arbitrate_unlock(address: *mut c_void) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x1B",
-      
+
       in("x0") address,
       lateout("x0") error_code,
       lateout("x1") _,
@@ -26,5 +26,7 @@ pub unsafe fn arbitrate_unlock(address: *mut c_void) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

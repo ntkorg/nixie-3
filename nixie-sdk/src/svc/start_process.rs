@@ -1,15 +1,20 @@
+use super::{Handle, Process};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Process};
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn start_process(handle: Handle<Process>, main_thread_priority: i32, default_cpu: i32, main_thread_stack_size: u64) -> Result<(), ResultCode> {
+pub unsafe fn start_process(
+  handle: Handle<Process>,
+  main_thread_priority: i32,
+  default_cpu: i32,
+  main_thread_stack_size: u64,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x7A",
-      
+
       in("w0") handle.as_bits(),
       in("w1") main_thread_priority,
       in("w2") default_cpu,
@@ -29,5 +34,7 @@ pub unsafe fn start_process(handle: Handle<Process>, main_thread_priority: i32, 
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

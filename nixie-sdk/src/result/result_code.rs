@@ -22,7 +22,8 @@ impl ResultCode {
   }
 
   pub fn resolve_code(&self) -> Option<ResultCodeDescription> {
-    self.resolve_module()
+    self
+      .resolve_module()
       .map(|m| (m.get_result_description)(self.code() as u32))
       .flatten()
   }
@@ -42,17 +43,59 @@ impl Display for ResultCode {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     if self.unused() == 0 {
       match (self.resolve_module(), self.resolve_code()) {
-        (None, None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: Unknown({}), code: Unknown({}) }}", self.0, self.module(), self.code())),
-        (Some(module), None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: {}, code: Unknown({}) }}", self.0, module.name, self.code())),
-        (None, Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: Unknown({}), code: {} }}", self.0, self.module(), code.name)),
-        (Some(module), Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: {}, code: {} }}", self.0, module.name, code.name)),
+        (None, None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: Unknown({}), code: Unknown({}) }}",
+          self.0,
+          self.module(),
+          self.code()
+        )),
+        (Some(module), None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: {}, code: Unknown({}) }}",
+          self.0,
+          module.name,
+          self.code()
+        )),
+        (None, Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: Unknown({}), code: {} }}",
+          self.0,
+          self.module(),
+          code.name
+        )),
+        (Some(module), Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: {}, code: {} }}",
+          self.0, module.name, code.name
+        )),
       }
     } else {
       match (self.resolve_module(), self.resolve_code()) {
-        (None, None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: Unknown({}), code: Unknown({}), unknown: {} }}", self.0, self.module(), self.code(), self.unused())),
-        (Some(module), None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: {}, code: Unknown({}), unknown: {} }}", self.0, module.name, self.code(), self.unused())),
-        (None, Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: Unknown({}), code: {}, unknown: {} }}", self.0, self.module(), code.name, self.unused())),
-        (Some(module), Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{ module: {}, code: {}, unknown: {} }}", self.0, module.name, code.name, self.unused())),
+        (None, None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: Unknown({}), code: Unknown({}), unknown: {} }}",
+          self.0,
+          self.module(),
+          self.code(),
+          self.unused()
+        )),
+        (Some(module), None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: {}, code: Unknown({}), unknown: {} }}",
+          self.0,
+          module.name,
+          self.code(),
+          self.unused()
+        )),
+        (None, Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: Unknown({}), code: {}, unknown: {} }}",
+          self.0,
+          self.module(),
+          code.name,
+          self.unused()
+        )),
+        (Some(module), Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{ module: {}, code: {}, unknown: {} }}",
+          self.0,
+          module.name,
+          code.name,
+          self.unused()
+        )),
       }
     }
   }
@@ -62,10 +105,30 @@ impl Debug for ResultCode {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     if self.unused() == 0 {
       match (self.resolve_module(), self.resolve_code()) {
-        (None, None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{\n  module: Unknown({}),\n  code: Unknown({})\n}}", self.0, self.module(), self.code())),
-        (Some(module), None) => f.write_fmt(format_args!("ResultCode ({:#x}) {{\n  // {}\n  module: {},\n  code: Unknown({})\n}}", self.0, module.description, module.name, self.code())),
-        (None, Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{\n  module: Unknown({}),\n\n  // {}\n  code: {}\n}}", self.0, self.module(), code.description, code)),
-        (Some(module), Some(code)) => f.write_fmt(format_args!("ResultCode ({:#x}) {{\n  // {}\n  module: {},\n\n  // {}\n  code: {}\n}}", self.0, module.description, module.name, code.description, code)),
+        (None, None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{\n  module: Unknown({}),\n  code: Unknown({})\n}}",
+          self.0,
+          self.module(),
+          self.code()
+        )),
+        (Some(module), None) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{\n  // {}\n  module: {},\n  code: Unknown({})\n}}",
+          self.0,
+          module.description,
+          module.name,
+          self.code()
+        )),
+        (None, Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{\n  module: Unknown({}),\n\n  // {}\n  code: {}\n}}",
+          self.0,
+          self.module(),
+          code.description,
+          code
+        )),
+        (Some(module), Some(code)) => f.write_fmt(format_args!(
+          "ResultCode ({:#x}) {{\n  // {}\n  module: {},\n\n  // {}\n  code: {}\n}}",
+          self.0, module.description, module.name, code.description, code
+        )),
       }
     } else {
       match (self.resolve_module(), self.resolve_code()) {

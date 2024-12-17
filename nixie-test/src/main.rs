@@ -31,7 +31,7 @@ pub fn main() {
 
   unsafe { relocate_self(module_start.mod0_offset + mod0.dynamic_offset) };
 
-  panic!("Hello, world!");
+  
 }
 
 #[panic_handler]
@@ -47,7 +47,12 @@ pub fn panic_handler(panic_info: &PanicInfo) -> ! {
   if let Some(location) = panic_info.location() {
     nixie_sdk::svc::output_debug_string::output_debug_string("");
     let mut log: String<4096> = String::new();
-    let _ = log.write_fmt(format_args!("at: {}:{}:{}", location.file(), location.line(), location.column()));
+    let _ = log.write_fmt(format_args!(
+      "at: {}:{}:{}",
+      location.file(),
+      location.line(),
+      location.column()
+    ));
     nixie_sdk::svc::output_debug_string::output_debug_string(&log);
   }
 

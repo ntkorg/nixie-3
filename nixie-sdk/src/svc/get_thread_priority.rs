@@ -1,6 +1,6 @@
+use super::{Handle, Thread};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Thread};
 
 #[cfg(target_pointer_width = "64")]
 pub fn get_thread_priority(thread: Handle<Thread>) -> Result<u32, ResultCode> {
@@ -10,7 +10,7 @@ pub fn get_thread_priority(thread: Handle<Thread>) -> Result<u32, ResultCode> {
   unsafe {
     asm!(
       "svc #0x0c",
-      
+
       in("x0") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") priority,
@@ -27,7 +27,9 @@ pub fn get_thread_priority(thread: Handle<Thread>) -> Result<u32, ResultCode> {
     return Ok(priority);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -38,7 +40,7 @@ pub fn get_thread_priority(thread: Handle<Thread>) -> Result<u32, ResultCode> {
   unsafe {
     asm!(
       "svc #0x0c",
-      
+
       in("w0") thread.as_bits(),
       lateout("w0") error_code,
       lateout("w1") priority,
@@ -51,5 +53,7 @@ pub fn get_thread_priority(thread: Handle<Thread>) -> Result<u32, ResultCode> {
     return Ok(priority);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

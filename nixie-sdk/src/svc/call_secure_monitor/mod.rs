@@ -1,12 +1,11 @@
 // TODO: SetConfig (undocumented?)
-pub mod get_config;
 pub mod generate_random_bytes;
-
+pub mod get_config;
 
 // Core
 
-use core::{arch::asm, ffi::c_void, fmt::Debug};
 use bitfield_struct::bitfield;
+use core::{arch::asm, ffi::c_void, fmt::Debug};
 
 enum SecureMonitorArgument {
   Value(u64),
@@ -16,7 +15,11 @@ enum SecureMonitorArgument {
 
 impl SecureMonitorArgument {
   fn is_pointer(&self) -> bool {
-    if let Self::Pointer(..) = self { true } else { false }
+    if let Self::Pointer(..) = self {
+      true
+    } else {
+      false
+    }
   }
 
   fn get_value_as_u64(&self) -> u64 {
@@ -40,7 +43,7 @@ struct SmcFunctionId {
   register_x6_is_pointer: bool,
   register_x7_is_pointer: bool,
   reserved: u8,
-  
+
   #[bits(6)]
   call_range: u8,
 
@@ -59,7 +62,10 @@ pub enum SmcResult {
 }
 
 #[cfg(target_pointer_width = "64")]
-fn call_secure_monitor(function_number: u8, arguments: [SecureMonitorArgument; 7]) -> Result<[u64; 7], SmcResult> {
+fn call_secure_monitor(
+  function_number: u8,
+  arguments: [SecureMonitorArgument; 7],
+) -> Result<[u64; 7], SmcResult> {
   let mut error_code: u32;
   let mut output_0: u64 = 0;
   let mut output_1: u64 = 0;
@@ -87,7 +93,7 @@ fn call_secure_monitor(function_number: u8, arguments: [SecureMonitorArgument; 7
   unsafe {
     asm!(
       "svc #0x7F",
-      
+
       in("x0") function_id.0,
       in("x1") arguments[0].get_value_as_u64(),
       in("x2") arguments[1].get_value_as_u64(),
@@ -108,7 +114,9 @@ fn call_secure_monitor(function_number: u8, arguments: [SecureMonitorArgument; 7
   }
 
   match error_code {
-    0 => Ok([output_0, output_1, output_2, output_3, output_4, output_5, output_6]),
+    0 => Ok([
+      output_0, output_1, output_2, output_3, output_4, output_5, output_6,
+    ]),
     1 => Err(SmcResult::NotImplemented),
     2 => Err(SmcResult::InvalidArgument),
     3 => Err(SmcResult::InProgress),
@@ -116,6 +124,9 @@ fn call_secure_monitor(function_number: u8, arguments: [SecureMonitorArgument; 7
     5 => Err(SmcResult::InvalidAsyncOperation),
     6 => Err(SmcResult::NotPermitted),
 
-    _ => panic!("Invalid SMC Result code: {} (x1: {}, x2: {}, x3: {}, x4: {}, x5: {}, x6: {}, x7: {})", error_code, output_0, output_1, output_2, output_3, output_4, output_5, output_6),
+    _ => panic!(
+      "Invalid SMC Result code: {} (x1: {}, x2: {}, x3: {}, x4: {}, x5: {}, x6: {}, x7: {})",
+      error_code, output_0, output_1, output_2, output_3, output_4, output_5, output_6
+    ),
   }
 }

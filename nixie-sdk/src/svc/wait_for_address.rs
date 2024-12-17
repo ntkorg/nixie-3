@@ -1,14 +1,19 @@
-use core::{arch::asm, ffi::c_void};
 use super::ArbitrationType;
+use core::{arch::asm, ffi::c_void};
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn wait_for_address(address: *const c_void, arbitration_type: ArbitrationType, value: u32, timeout: u64) -> Result<(), crate::result::result_code::ResultCode> {
+pub unsafe fn wait_for_address(
+  address: *const c_void,
+  arbitration_type: ArbitrationType,
+  value: u32,
+  timeout: u64,
+) -> Result<(), crate::result::result_code::ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x34",
-      
+
       in("x0") address as usize,
       in("w1") arbitration_type as u32,
       in("w2") value,
@@ -28,5 +33,7 @@ pub unsafe fn wait_for_address(address: *const c_void, arbitration_type: Arbitra
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

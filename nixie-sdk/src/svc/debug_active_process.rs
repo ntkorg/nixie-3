@@ -1,16 +1,16 @@
-use core::arch::asm;
-use super::{Handle, Debug};
+use super::{Debug, Handle};
 use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn debug_active_process(process_id: u64) -> Result<Handle<Debug>, ResultCode> {
   let mut error_code: u32;
   let mut debug_bits: u32;
-  
+
   unsafe {
     asm!(
       "svc #0x60",
-      
+
       in("x0") process_id,
       lateout("w0") error_code,
       lateout("w1") debug_bits,
@@ -27,5 +27,7 @@ pub fn debug_active_process(process_id: u64) -> Result<Handle<Debug>, ResultCode
     return Ok(unsafe { Handle::<Debug>::from_bits(debug_bits) });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

@@ -8,3 +8,6 @@ bitfield-struct = "0.6.1"
 heapless = "0.8.0"
 zerocopy = "0.7.32"
 zerocopy-derive = "0.7.32"
+
+[features]
+nnsdk_sidecar = []

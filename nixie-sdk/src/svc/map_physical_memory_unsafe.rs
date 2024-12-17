@@ -1,5 +1,5 @@
-use core::arch::asm;
 use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn map_physical_memory_unsafe(address: *const u8, size: u64) -> Result<(), ResultCode> {
@@ -8,7 +8,7 @@ pub fn map_physical_memory_unsafe(address: *const u8, size: u64) -> Result<(), R
   unsafe {
     asm!(
       "svc #0x48",
-      
+
       in("x0") address as usize,
       in("x1") size,
       lateout("w0") error_code,
@@ -26,5 +26,7 @@ pub fn map_physical_memory_unsafe(address: *const u8, size: u64) -> Result<(), R
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

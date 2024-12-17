@@ -7,7 +7,7 @@ pub unsafe fn get_current_processor_number() -> u32 {
   unsafe {
     asm!(
       "svc #0x10",
-      
+
       lateout("x0") cpuid,
       lateout("x1") _,
       lateout("x2") _,
@@ -29,7 +29,7 @@ pub unsafe fn get_current_processor_number() -> u32 {
   unsafe {
     asm!(
       "svc #0x10",
-      
+
       lateout("w0") cpuid,
       lateout("w1") _,
       lateout("w2") _,

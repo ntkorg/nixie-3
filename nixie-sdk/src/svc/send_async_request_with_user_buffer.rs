@@ -1,16 +1,19 @@
-use core::arch::asm;
-use super::{Handle, ClientSession, ReadableEvent};
+use super::{ClientSession, Handle, ReadableEvent};
 use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub fn send_async_request_with_user_buffer(session: &Handle<ClientSession>, buffer: &mut [u8]) -> Result<Handle<ReadableEvent>, ResultCode> {
+pub fn send_async_request_with_user_buffer(
+  session: &Handle<ClientSession>,
+  buffer: &mut [u8],
+) -> Result<Handle<ReadableEvent>, ResultCode> {
   let mut error_code: u32;
   let mut readable_event_bits: u32;
-  
+
   unsafe {
     asm!(
       "svc #0x23",
-      
+
       in("x1") buffer.as_mut_ptr(),
       in("x2") buffer.len(),
       in("w3") session.as_bits(),
@@ -29,5 +32,7 @@ pub fn send_async_request_with_user_buffer(session: &Handle<ClientSession>, buff
     return Ok(unsafe { Handle::<ReadableEvent>::from_bits(readable_event_bits) });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

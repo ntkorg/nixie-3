@@ -3,13 +3,18 @@ use core::arch::asm;
 use core::ffi::c_void;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn set_memory_attribute(pointer: *mut c_void, size: usize, mask: u32, value: u32) -> Result<(), ResultCode> {
+pub unsafe fn set_memory_attribute(
+  pointer: *mut c_void,
+  size: usize,
+  mask: u32,
+  value: u32,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x03",
-      
+
       in("x0") pointer,
       in("x1") size,
       in("w2") mask,
@@ -29,17 +34,24 @@ pub unsafe fn set_memory_attribute(pointer: *mut c_void, size: usize, mask: u32,
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
-pub unsafe fn set_memory_attribute(pointer: *mut c_void, size: usize, mask: u32, value: u32) -> Result<(), ResultCode> {
+pub unsafe fn set_memory_attribute(
+  pointer: *mut c_void,
+  size: usize,
+  mask: u32,
+  value: u32,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x03",
-      
+
       in("w0") pointer,
       in("w1") size,
       in("w2") mask,
@@ -55,5 +67,7 @@ pub unsafe fn set_memory_attribute(pointer: *mut c_void, size: usize, mask: u32,
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

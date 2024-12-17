@@ -1,9 +1,9 @@
+use super::MemoryInfo;
 use crate::result::result_code::ResultCode;
+use crate::svc::RawMemoryInfo;
 use core::arch::asm;
 use core::ffi::c_void;
-use crate::svc::RawMemoryInfo;
 use zerocopy::FromZeroes;
-use super::MemoryInfo;
 
 #[cfg(target_pointer_width = "64")]
 pub fn query_memory(address: *mut c_void) -> Result<(MemoryInfo, u32), ResultCode> {
@@ -14,7 +14,7 @@ pub fn query_memory(address: *mut c_void) -> Result<(MemoryInfo, u32), ResultCod
   unsafe {
     asm!(
       "svc #0x06",
-      
+
       in("x0") &mut memory_info as *mut RawMemoryInfo,
       in("x2") address,
       lateout("x0") error_code,
@@ -32,7 +32,9 @@ pub fn query_memory(address: *mut c_void) -> Result<(MemoryInfo, u32), ResultCod
     return Ok((MemoryInfo::from_raw(memory_info), page_flags));
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -44,7 +46,7 @@ pub fn query_memory(address: *mut c_void) -> Result<(MemoryInfo, u32), ResultCod
   unsafe {
     asm!(
       "svc #0x06",
-      
+
       in("w0") &mut memory_info as *mut RawMemoryInfo,
       in("w2") address,
       lateout("w0") error_code,
@@ -58,5 +60,7 @@ pub fn query_memory(address: *mut c_void) -> Result<(MemoryInfo, u32), ResultCod
     return Ok((MemoryInfo::from_raw(memory_info), page_flags));
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

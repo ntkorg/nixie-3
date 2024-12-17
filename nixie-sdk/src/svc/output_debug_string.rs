@@ -8,7 +8,7 @@ pub fn output_debug_string(message: &str) {
 
     asm!(
       "svc #0x27",
-      
+
       in("x0") ptr,
       in("x1") length,
       lateout("x0") _,
@@ -31,7 +31,7 @@ pub fn output_debug_string(message: &str) {
 
     asm!(
       "svc #0x27",
-      
+
       in("w0") ptr,
       in("w1") length,
       lateout("w0") _,

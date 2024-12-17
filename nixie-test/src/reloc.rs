@@ -1,5 +1,8 @@
 use crate::reloc::DynTags::Unknown;
-use core::{arch::global_asm, mem::size_of};
+use core::{
+  arch::{asm, global_asm},
+  mem::size_of,
+};
 use heapless::String;
 use nixie_sdk::svc;
 use zerocopy::macro_util::transmute_ref;
@@ -17,17 +20,13 @@ pub struct Mod0 {
   pub runtime_module_offset: u32,
 }
 
-global_asm!(
-  r#"
-.global get_module_start
-get_module_start:
-  adrp x0, __nixie_module_intro
-  ret
-"#
-);
+fn get_module_start() -> usize {
+  let module_start: usize;
 
-extern "C" {
-  pub fn get_module_start() -> usize;
+  // ASM to do this without linker getting in the way
+  unsafe { asm!("adrp x0, __nixie_module_intro", out("x0") module_start) };
+
+  return module_start;
 }
 
 pub unsafe fn get_global_ptr(offset: usize) -> *const u8 {

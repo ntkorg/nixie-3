@@ -1,15 +1,20 @@
-use core::{arch::asm, ffi::c_void};
-use crate::result::result_code::ResultCode;
 use super::{Handle, Process};
+use crate::result::result_code::ResultCode;
+use core::{arch::asm, ffi::c_void};
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn unmap_process_code_memory(dest: *mut c_void, size: u64, process: Handle<Process>, process_src: *mut c_void) -> Result<(), ResultCode> {
+pub unsafe fn unmap_process_code_memory(
+  dest: *mut c_void,
+  size: u64,
+  process: Handle<Process>,
+  process_src: *mut c_void,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x78",
-      
+
       in("x0") process.as_bits(),
       in("x1") dest,
       in("x2") process_src,
@@ -29,5 +34,7 @@ pub unsafe fn unmap_process_code_memory(dest: *mut c_void, size: u64, process: H
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

@@ -1,6 +1,6 @@
+use super::{Handle, Thread};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Thread};
 
 #[cfg(target_pointer_width = "64")]
 pub unsafe fn cancel_synchronization(handle: Handle<Thread>) -> Result<(), ResultCode> {
@@ -9,7 +9,7 @@ pub unsafe fn cancel_synchronization(handle: Handle<Thread>) -> Result<(), Resul
   unsafe {
     asm!(
       "svc #0x19",
-      
+
       in("w0") handle.as_bits(),
       lateout("x0") error_code,
       lateout("x1") _,
@@ -26,5 +26,7 @@ pub unsafe fn cancel_synchronization(handle: Handle<Thread>) -> Result<(), Resul
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

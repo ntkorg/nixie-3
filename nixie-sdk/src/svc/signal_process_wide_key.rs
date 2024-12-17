@@ -9,7 +9,7 @@ pub unsafe fn signal_process_wide_key(address: *mut c_void, value: u32) -> Resul
   unsafe {
     asm!(
       "svc #0x1C",
-      
+
       in("x0") address,
       in("w1") value,
       lateout("x0") error_code,
@@ -27,5 +27,7 @@ pub unsafe fn signal_process_wide_key(address: *mut c_void, value: u32) -> Resul
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

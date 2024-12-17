@@ -3,13 +3,17 @@ use core::arch::asm;
 use core::ffi::c_void;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn unmap_memory(dst_pointer: *mut c_void, src_pointer: *mut c_void, size: usize) -> Result<(), ResultCode> {
+pub unsafe fn unmap_memory(
+  dst_pointer: *mut c_void,
+  src_pointer: *mut c_void,
+  size: usize,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x05",
-      
+
       in("x0") dst_pointer,
       in("x1") src_pointer,
       in("w2") size,
@@ -28,17 +32,23 @@ pub unsafe fn unmap_memory(dst_pointer: *mut c_void, src_pointer: *mut c_void, s
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
-pub unsafe fn unmap_memory(dst_pointer: *mut c_void, src_pointer: *mut c_void, size: usize) -> Result<(), ResultCode> {
+pub unsafe fn unmap_memory(
+  dst_pointer: *mut c_void,
+  src_pointer: *mut c_void,
+  size: usize,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x05",
-      
+
       in("w0") dst_pointer,
       in("w1") src_pointer,
       in("w2") size,
@@ -53,5 +63,7 @@ pub unsafe fn unmap_memory(dst_pointer: *mut c_void, src_pointer: *mut c_void, s
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

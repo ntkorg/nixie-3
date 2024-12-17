@@ -1,8 +1,11 @@
 use zerocopy::FromZeroes;
 
+use super::{
+  Debug, DebugEventException, DebugEventExceptionKind, DebugEventExit, DebugEventExitKind,
+  DebugEventInfo, DebugEventInfoRaw, DebugEventProcess, DebugEventThread, Handle,
+};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Debug, DebugEventException, DebugEventExceptionKind, DebugEventExit, DebugEventExitKind, DebugEventInfo, DebugEventInfoRaw, DebugEventProcess, DebugEventThread, Handle};
 
 #[cfg(target_pointer_width = "64")]
 fn get_debug_event_raw(handle: Handle<Debug>) -> Result<DebugEventInfoRaw, ResultCode> {
@@ -12,7 +15,7 @@ fn get_debug_event_raw(handle: Handle<Debug>) -> Result<DebugEventInfoRaw, Resul
   unsafe {
     asm!(
       "svc #0x63",
-      
+
       in("w0") &mut debug_event_info as *mut DebugEventInfoRaw,
       in("w1") handle.as_bits(),
       lateout("x0") error_code,
@@ -30,7 +33,9 @@ fn get_debug_event_raw(handle: Handle<Debug>) -> Result<DebugEventInfoRaw, Resul
     return Ok(debug_event_info);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 pub fn get_debug_event(handle: Handle<Debug>) -> Result<DebugEventInfo, ResultCode> {
@@ -45,7 +50,11 @@ pub fn get_debug_event(handle: Handle<Debug>) -> Result<DebugEventInfo, ResultCo
         process_id: raw.per_type_specifics.process.process_id.get(),
         process_name: raw.per_type_specifics.process.process_name,
         mmu_flags: raw.per_type_specifics.process.mmu_flags.get(),
-        user_exception_context_address: raw.per_type_specifics.process.user_exception_context_addr.get() as usize,
+        user_exception_context_address: raw
+          .per_type_specifics
+          .process
+          .user_exception_context_addr
+          .get() as usize,
       }),
 
       1 => {
@@ -65,15 +74,17 @@ pub fn get_debug_event(handle: Handle<Debug>) -> Result<DebugEventInfo, ResultCo
       }
 
       2 => DebugEventInfo::ExitProcess(DebugEventExit {
-        flags:  raw.flags.get(),
+        flags: raw.flags.get(),
         thread_id: raw.thread_id.get(),
-        exit_kind: DebugEventExitKind::opt_from(raw.per_type_specifics.exit.r#type.get()).expect("Invalid Exit Kind"),
+        exit_kind: DebugEventExitKind::opt_from(raw.per_type_specifics.exit.r#type.get())
+          .expect("Invalid Exit Kind"),
       }),
 
       3 => DebugEventInfo::ExitProcess(DebugEventExit {
         flags: raw.flags.get(),
         thread_id: raw.thread_id.get(),
-        exit_kind: DebugEventExitKind::opt_from(raw.per_type_specifics.exit.r#type.get()).expect("Invalid Exit Kind"),
+        exit_kind: DebugEventExitKind::opt_from(raw.per_type_specifics.exit.r#type.get())
+          .expect("Invalid Exit Kind"),
       }),
 
       4 => DebugEventInfo::Exception(DebugEventException {
@@ -81,7 +92,9 @@ pub fn get_debug_event(handle: Handle<Debug>) -> Result<DebugEventInfo, ResultCo
         thread_id: raw.thread_id.get(),
         fault_register: raw.per_type_specifics.exception.fault_register.get() as usize,
         exception_kind: match raw.per_type_specifics.exception.exception_type.get() {
-          0 => DebugEventExceptionKind::Trap { opcode: raw.per_type_specifics.exception.argument_0.get() },
+          0 => DebugEventExceptionKind::Trap {
+            opcode: raw.per_type_specifics.exception.argument_0.get(),
+          },
           1 => DebugEventExceptionKind::InstructionAbort,
           2 => DebugEventExceptionKind::DataAbortMisc,
           3 => DebugEventExceptionKind::ProgramCounterOrStackPointerAlignmentFault,
@@ -96,11 +109,13 @@ pub fn get_debug_event(handle: Handle<Debug>) -> Result<DebugEventInfo, ResultCo
             raw.per_type_specifics.exception.argument_2.get() as usize,
           ),
           7 => DebugEventExceptionKind::DebuggerBreak,
-          8 => DebugEventExceptionKind::BadServiceCall { service_call_id: raw.per_type_specifics.exception.argument_0.get() },
+          8 => DebugEventExceptionKind::BadServiceCall {
+            service_call_id: raw.per_type_specifics.exception.argument_0.get(),
+          },
           9 => DebugEventExceptionKind::SystemError,
 
           _ => panic!("Invalid Exception Kind"),
-        }
+        },
       }),
 
       _ => unreachable!("Unknown event_type: {}", raw.event_type),

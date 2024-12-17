@@ -1,17 +1,21 @@
-use core::arch::asm;
-use super::{Handle, ServerSession, ReplyAndReceiveError};
+use super::{Handle, ReplyAndReceiveError, ServerSession};
 use crate::result::modules::svc;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn reply_and_receive_with_user_buffer<'a>(user_buffer: &mut [u8], ports: &'a [Handle<ServerSession>], reply_target_session_handle: &Handle<ServerSession>, timeout: u64) -> Result<&'a Handle<ServerSession>, ReplyAndReceiveError<'a>> {
-
+pub unsafe fn reply_and_receive_with_user_buffer<'a>(
+  user_buffer: &mut [u8],
+  ports: &'a [Handle<ServerSession>],
+  reply_target_session_handle: &Handle<ServerSession>,
+  timeout: u64,
+) -> Result<&'a Handle<ServerSession>, ReplyAndReceiveError<'a>> {
   let mut error_code: u32;
   let mut handle_index: u32;
 
   unsafe {
     asm!(
       "svc #0x44",
-      
+
       in("x1") user_buffer.as_mut_ptr(),
       in("x2") user_buffer.len(),
       in("x3") ports.as_ptr(),
@@ -36,7 +40,9 @@ pub unsafe fn reply_and_receive_with_user_buffer<'a>(user_buffer: &mut [u8], por
   let result_code = crate::result::result_code::ResultCode::from_bits(error_code as u32);
 
   if result_code == svc::SESSION_CLOSED {
-    return Err(ReplyAndReceiveError::PortRemoteDead(ports.get(handle_index as usize).unwrap()))
+    return Err(ReplyAndReceiveError::PortRemoteDead(
+      ports.get(handle_index as usize).unwrap(),
+    ));
   }
 
   Err(ReplyAndReceiveError::GenericResultCode(result_code))

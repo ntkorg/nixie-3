@@ -1,15 +1,20 @@
-use core::{arch::asm, ffi::c_void};
-use crate::result::result_code::ResultCode;
 use super::{Handle, Process};
+use crate::result::result_code::ResultCode;
+use core::{arch::asm, ffi::c_void};
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn connect_to_port(dest: *mut c_void, size: u64, process: Handle<Process>, process_src: *mut c_void) -> Result<(), ResultCode> {
+pub unsafe fn connect_to_port(
+  dest: *mut c_void,
+  size: u64,
+  process: Handle<Process>,
+  process_src: *mut c_void,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x75",
-      
+
       in("x0") dest,
       in("x1") process.as_bits(),
       in("x2") process_src,
@@ -29,5 +34,7 @@ pub unsafe fn connect_to_port(dest: *mut c_void, size: u64, process: Handle<Proc
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

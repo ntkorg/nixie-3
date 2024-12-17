@@ -9,7 +9,7 @@ pub fn get_process_list(thread_ids: &mut [u64]) -> Result<u64, ResultCode> {
   unsafe {
     asm!(
       "svc #0x65",
-      
+
       in("x1") thread_ids.as_ptr(),
       in("x2") thread_ids.len(),
       lateout("x0") error_code,
@@ -27,5 +27,7 @@ pub fn get_process_list(thread_ids: &mut [u64]) -> Result<u64, ResultCode> {
     return Ok(process_count);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

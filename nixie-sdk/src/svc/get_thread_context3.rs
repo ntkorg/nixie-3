@@ -4,14 +4,16 @@ use zerocopy::FromZeroes;
 use super::{Handle, Thread, ThreadContext};
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn get_thread_context3(thread: Handle<Thread>) -> Result<ThreadContext, crate::result::result_code::ResultCode> {
+pub unsafe fn get_thread_context3(
+  thread: Handle<Thread>,
+) -> Result<ThreadContext, crate::result::result_code::ResultCode> {
   let mut thread_context = ThreadContext::new_zeroed();
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x33",
-      
+
       in("x0") &mut thread_context as *mut ThreadContext as usize,
       in("w1") thread.as_bits(),
       lateout("x0") error_code,
@@ -29,5 +31,7 @@ pub unsafe fn get_thread_context3(thread: Handle<Thread>) -> Result<ThreadContex
     return Ok(thread_context);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

@@ -1,58 +1,58 @@
-pub mod set_heap_size;
-pub mod set_memory_permission;
-pub mod set_memory_attribute;
-pub mod map_memory;
-pub mod unmap_memory;
-pub mod query_memory;
-pub mod exit_process;
-pub mod create_thread;
-pub mod start_thread;
-pub mod exit_thread;
-pub mod sleep_thread;
-pub mod get_thread_priority;
-pub mod set_thread_priority;
-pub mod get_thread_core_mask;
-pub mod set_thread_core_mask;
-pub mod get_current_processor_number;
-pub mod signal_event;
-pub mod clear_event;
-pub mod map_shared_memory;
-pub mod unmap_shared_memory;
-pub mod create_transfer_memory;
-pub mod close_handle;
-pub mod reset_signal;
-pub mod wait_synchronization;
-pub mod cancel_synchronization;
 pub mod arbitrate_lock;
 pub mod arbitrate_unlock;
-pub mod wait_process_wide_key_atomic;
-pub mod signal_process_wide_key;
-pub mod get_system_tick;
-pub mod connect_to_named_port;
-pub mod send_sync_request_light;
-pub mod send_sync_request;
-pub mod send_sync_request_with_user_buffer;
-pub mod send_async_request_with_user_buffer;
-pub mod get_process_id;
-pub mod get_thread_id;
 pub mod r#break;
-pub mod output_debug_string;
-pub mod return_from_exception;
-pub mod get_info;
-pub mod flush_entire_data_cache;
+pub mod cancel_synchronization;
+pub mod clear_event;
+pub mod close_handle;
+pub mod connect_to_named_port;
+pub mod create_thread;
+pub mod create_transfer_memory;
+pub mod exit_process;
+pub mod exit_thread;
 pub mod flush_data_cache;
+pub mod flush_entire_data_cache;
+pub mod get_current_processor_number;
+pub mod get_info;
+pub mod get_process_id;
+pub mod get_system_tick;
+pub mod get_thread_core_mask;
+pub mod get_thread_id;
+pub mod get_thread_priority;
+pub mod map_memory;
 pub mod map_physical_memory;
+pub mod map_shared_memory;
+pub mod output_debug_string;
+pub mod query_memory;
+pub mod reset_signal;
+pub mod return_from_exception;
+pub mod send_async_request_with_user_buffer;
+pub mod send_sync_request;
+pub mod send_sync_request_light;
+pub mod send_sync_request_with_user_buffer;
+pub mod set_heap_size;
+pub mod set_memory_attribute;
+pub mod set_memory_permission;
+pub mod set_thread_core_mask;
+pub mod set_thread_priority;
+pub mod signal_event;
+pub mod signal_process_wide_key;
+pub mod sleep_thread;
+pub mod start_thread;
+pub mod unmap_memory;
 pub mod unmap_physical_memory;
+pub mod unmap_shared_memory;
+pub mod wait_process_wide_key_atomic;
+pub mod wait_synchronization;
 // TODO: GetDebugFutureThreadInfo (x2E)
 // TODO: GetLastThreadInfo (x2F)
-pub mod get_resource_limit_limit_value;
 pub mod get_resource_limit_current_value;
-pub mod set_thread_activity;
+pub mod get_resource_limit_limit_value;
+pub mod get_resource_limit_peak_value;
 pub mod get_thread_context3;
-pub mod wait_for_address;
+pub mod set_thread_activity;
 pub mod signal_to_address;
 pub mod synchronize_preemption_state;
-pub mod get_resource_limit_peak_value;
+pub mod wait_for_address;
 // DOES NOT EXIST
 // TODO: CreateIoPool (0x39)
 // TODO: CreateIoRegion (0x3A)
@@ -61,24 +61,24 @@ pub mod get_resource_limit_peak_value;
 // TODO: ChangeKernelTraceState (0x3D)
 // DOES NOT EXIST
 // DOES NOT EXIST
-pub mod create_session;
 pub mod accept_session;
-pub mod reply_and_receive_light;
-pub mod reply_and_receive;
-pub mod reply_and_receive_with_user_buffer;
 pub mod create_event;
+pub mod create_session;
+pub mod reply_and_receive;
+pub mod reply_and_receive_light;
+pub mod reply_and_receive_with_user_buffer;
 // TODO: MapIoRegion (0x46)
 // TODO: UnmapIoRegion (0x47)
-pub mod map_physical_memory_unsafe;
-pub mod unmap_physical_memory_unsafe;
-pub mod set_unsafe_limit;
-pub mod create_code_memory;
 pub mod control_code_memory;
+pub mod create_code_memory;
+pub mod map_physical_memory_unsafe;
+pub mod set_unsafe_limit;
 pub mod sleep_system;
+pub mod unmap_physical_memory_unsafe;
 // TODO: ReadWriteRegister (0x4E)
-pub mod set_process_activity;
 pub mod create_shared_memory;
 pub mod map_transfer_memory;
+pub mod set_process_activity;
 pub mod unmap_transfer_memory;
 // TODO: CreateInterruptEvent (0x53)
 pub mod query_physical_address;
@@ -90,16 +90,16 @@ pub mod query_physical_address;
 // TODO: MapDeviceAddressSpaceAligned (0x5A)
 // TODO: MapDeviceAddressSpace (0x5B)
 // TODO: UnmapDeviceAddressSpace (0x5C)
-pub mod invalidate_process_data_cache;
-pub mod store_process_data_cache;
-pub mod flush_process_data_cache;
-pub mod debug_active_process;
 pub mod break_debug_process;
-pub mod terminate_debug_process;
-pub mod get_debug_event;
 pub mod continue_debug_event;
+pub mod debug_active_process;
+pub mod flush_process_data_cache;
+pub mod get_debug_event;
 pub mod get_process_list;
 pub mod get_thread_list;
+pub mod invalidate_process_data_cache;
+pub mod store_process_data_cache;
+pub mod terminate_debug_process;
 // TODO: GetDebugThreadContext (0x67)
 // TODO: SetDebugThreadContext (0x68)
 // TODO: QueryDebugProcessMemory (0x69)
@@ -108,31 +108,30 @@ pub mod get_thread_list;
 // TODO: SetHardwareBreakpoint (0x6C)
 // TODO: GetDebugThreadParam (0x6D)
 // DOES NOT EXIST
-pub mod get_system_info;
-pub mod create_port;
-pub mod manage_named_port;
+pub mod call_secure_monitor;
 pub mod connect_to_port;
-pub mod set_process_memory_permission;
-pub mod map_process_memory;
-pub mod unmap_process_memory;
-pub mod query_process_memory;
-pub mod map_process_code_memory;
-pub mod unmap_process_code_memory;
+pub mod create_port;
 pub mod create_process;
+pub mod create_resource_limit;
+pub mod get_process_info;
+pub mod get_system_info;
+pub mod manage_named_port;
+pub mod map_process_code_memory;
+pub mod map_process_memory;
+pub mod query_process_memory;
+pub mod set_process_memory_permission;
+pub mod set_resource_limit_value;
 pub mod start_process;
 pub mod terminate_process;
-pub mod get_process_info;
-pub mod create_resource_limit;
-pub mod set_resource_limit_value;
-pub mod call_secure_monitor;
-
+pub mod unmap_process_code_memory;
+pub mod unmap_process_memory;
 
 // Types
+use crate::{result::result_code::ResultCode, util::USIZE};
 use bitfield_struct::bitfield;
+use core::{any::type_name, ffi::c_void, fmt::Write};
 use zerocopy::native_endian::{U128, U32, U64};
 use zerocopy_derive::{AsBytes, FromBytes, FromZeroes};
-use core::ffi::c_void;
-use crate::{result::result_code::ResultCode, util::USIZE};
 
 #[bitfield(u32)]
 pub struct MemoryPermission {
@@ -255,32 +254,73 @@ pub struct ServerPort;
 
 #[derive(FromBytes, AsBytes, FromZeroes)]
 #[repr(transparent)]
-pub struct Handle<T:? Sized> {
+pub struct Handle<T: ?Sized> {
   handle_index: U32,
-  _marker: core::marker::PhantomData<T>
+  _marker: core::marker::PhantomData<T>,
 }
 
-impl<T:? Sized> Handle<T> {
+impl<T: ?Sized> Handle<T> {
   pub(crate) unsafe fn from_bits(bits: u32) -> Handle<T> {
     Handle::<T> {
       handle_index: U32::new(bits),
-      _marker: core::marker::PhantomData::<T> {}
+      _marker: core::marker::PhantomData::<T> {},
     }
   }
 
-  pub(crate) fn as_bits(&self) -> u32 {
-    self.handle_index.get()
-  }
+  pub(crate) fn as_bits(&self) -> u32 { self.handle_index.get() }
 
-  pub unsafe fn clone(&self) -> Handle<T> {
-    Handle::<T>::from_bits(self.handle_index.get())
-  }
+  pub unsafe fn clone(&self) -> Handle<T> { Handle::<T>::from_bits(self.handle_index.get()) }
 }
 
-impl<T:? Sized> Drop for Handle<T> {
+impl<T: ?Sized> Drop for Handle<T> {
   fn drop(&mut self) {
     // ignore the result code generated by close_handle
     let _ = unsafe { crate::svc::close_handle::close_handle(self) };
+  }
+}
+
+impl<T> core::fmt::Debug for Handle<T> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let type_name = type_name::<T>();
+
+    f.write_str("Handle<")?;
+
+    if type_name.starts_with("nixie_sdk::svc::") {
+      f.write_str(&type_name[16..])?;
+    } else {
+      f.write_str(&type_name)?;
+    }
+
+    f.write_str("> { index: 0x")?;
+    
+    for i in 0..8 {
+      let nibble = (self.handle_index.get() >> (i * 4)) & 0b1111;
+
+      match nibble {
+        0 => f.write_char('0')?,
+        1 => f.write_char('1')?,
+        2 => f.write_char('2')?,
+        3 => f.write_char('3')?,
+        4 => f.write_char('4')?,
+        5 => f.write_char('5')?,
+        6 => f.write_char('6')?,
+        7 => f.write_char('7')?,
+        8 => f.write_char('8')?,
+        9 => f.write_char('9')?,
+        10 => f.write_char('A')?,
+        11 => f.write_char('B')?,
+        12 => f.write_char('C')?,
+        13 => f.write_char('D')?,
+        14 => f.write_char('E')?,
+        15 => f.write_char('F')?,
+
+        _ => unreachable!(),
+      };
+    }
+
+    f.write_str(" }")?;
+
+    Ok(())
   }
 }
 
@@ -514,7 +554,7 @@ struct CreateProcessParameterFlagsRaw {
   enable_aslr: bool,
   is_application: bool,
   use_secure_memory: bool,
-  
+
   #[bits(4)]
   memory_region: u8,
 
@@ -549,11 +589,18 @@ pub struct CreateProcessParameter {
 }
 
 impl CreateProcessParameter {
-  pub fn new(name: heapless::String<12>, title_id: u64, code_addr: *mut c_void, code_num_pages: u32, memory_region: MemoryRegion, resource_limit: Handle<ResourceLimit>) -> CreateProcessParameter {
+  pub fn new(
+    name: heapless::String<12>,
+    title_id: u64,
+    code_addr: *mut c_void,
+    code_num_pages: u32,
+    memory_region: MemoryRegion,
+    resource_limit: Handle<ResourceLimit>,
+  ) -> CreateProcessParameter {
     let mut name_bytes: [u8; 12] = [0; 12];
 
     name_bytes[0..name.as_bytes().len()].copy_from_slice(name.as_bytes());
-    
+
     CreateProcessParameter {
       name: name_bytes,
       category: ProcessCategory::RegularTitle,
@@ -573,11 +620,18 @@ impl CreateProcessParameter {
     }
   }
 
-  pub fn new_application(name: heapless::String<12>, title_id: u64, code_addr: *mut c_void, code_num_pages: u32, memory_region: MemoryRegion, resource_limit: Handle<ResourceLimit>) -> CreateProcessParameter {
+  pub fn new_application(
+    name: heapless::String<12>,
+    title_id: u64,
+    code_addr: *mut c_void,
+    code_num_pages: u32,
+    memory_region: MemoryRegion,
+    resource_limit: Handle<ResourceLimit>,
+  ) -> CreateProcessParameter {
     let mut name_bytes: [u8; 12] = [0; 12];
 
     name_bytes[0..name.as_bytes().len()].copy_from_slice(name.as_bytes());
-    
+
     CreateProcessParameter {
       name: name_bytes,
       category: ProcessCategory::RegularTitle,
@@ -602,24 +656,70 @@ impl CreateProcessParameter {
   }
 
   pub fn with_address_space_type(self, address_space_type: AddressSpaceType) -> Self {
-    CreateProcessParameter { address_space_type, ..self }
+    CreateProcessParameter {
+      address_space_type,
+      ..self
+    }
   }
 
   pub fn with_system_resource_page_count(self, system_resource_num_pages: u32) -> Self {
-    CreateProcessParameter { system_resource_num_pages, ..self }
+    CreateProcessParameter {
+      system_resource_num_pages,
+      ..self
+    }
   }
 
-  pub fn with_64bit_instructions(self) -> Self { CreateProcessParameter { is_64bit_instruction: true,  ..self } }
-  pub fn with_32bit_instructions(self) -> Self { CreateProcessParameter { is_64bit_instruction: false, ..self } }
+  pub fn with_64bit_instructions(self) -> Self {
+    CreateProcessParameter {
+      is_64bit_instruction: true,
+      ..self
+    }
+  }
+  pub fn with_32bit_instructions(self) -> Self {
+    CreateProcessParameter {
+      is_64bit_instruction: false,
+      ..self
+    }
+  }
 
-  pub fn with_aslr(self) -> Self { CreateProcessParameter { enable_aslr: true,     ..self } }
-  pub fn without_aslr(self) -> Self { CreateProcessParameter { enable_aslr: false, ..self } }
+  pub fn with_aslr(self) -> Self {
+    CreateProcessParameter {
+      enable_aslr: true,
+      ..self
+    }
+  }
+  pub fn without_aslr(self) -> Self {
+    CreateProcessParameter {
+      enable_aslr: false,
+      ..self
+    }
+  }
 
-  pub fn with_debug(self) -> Self { CreateProcessParameter { enable_debug: true,     ..self } }
-  pub fn without_debug(self) -> Self { CreateProcessParameter { enable_debug: false, ..self } }
+  pub fn with_debug(self) -> Self {
+    CreateProcessParameter {
+      enable_debug: true,
+      ..self
+    }
+  }
+  pub fn without_debug(self) -> Self {
+    CreateProcessParameter {
+      enable_debug: false,
+      ..self
+    }
+  }
 
-  pub fn with_optimized_memory_allocations(self) -> Self { CreateProcessParameter { optimize_memory_allocation: true,     ..self } }
-  pub fn without_optimized_memory_allocations(self) -> Self { CreateProcessParameter { optimize_memory_allocation: false, ..self } }
+  pub fn with_optimized_memory_allocations(self) -> Self {
+    CreateProcessParameter {
+      optimize_memory_allocation: true,
+      ..self
+    }
+  }
+  pub fn without_optimized_memory_allocations(self) -> Self {
+    CreateProcessParameter {
+      optimize_memory_allocation: false,
+      ..self
+    }
+  }
 }
 
 #[derive(FromBytes, FromZeroes, AsBytes)]

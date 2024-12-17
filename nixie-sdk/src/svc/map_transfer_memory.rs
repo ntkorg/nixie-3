@@ -1,15 +1,20 @@
+use super::{Handle, MemoryPermission, TransferMemory};
 use crate::result::result_code::ResultCode;
 use core::{arch::asm, ffi::c_void};
-use super::{Handle, MemoryPermission, TransferMemory};
 
 #[cfg(target_pointer_width = "64")]
-pub fn map_transfer_memory(handle: Handle<TransferMemory>, address: *mut c_void, size: u64, permission: MemoryPermission) -> Result<(), ResultCode> {
+pub fn map_transfer_memory(
+  handle: Handle<TransferMemory>,
+  address: *mut c_void,
+  size: u64,
+  permission: MemoryPermission,
+) -> Result<(), ResultCode> {
   let mut error_code: u32;
 
   unsafe {
     asm!(
       "svc #0x51",
-      
+
       in("x0") handle.as_bits(),
       in("x1") address,
       in("x2") size,
@@ -29,5 +34,7 @@ pub fn map_transfer_memory(handle: Handle<TransferMemory>, address: *mut c_void,
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

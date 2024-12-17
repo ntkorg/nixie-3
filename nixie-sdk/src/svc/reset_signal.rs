@@ -1,6 +1,6 @@
+use super::{Handle, Resettable};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Resettable};
 
 #[cfg(target_pointer_width = "64")]
 pub unsafe fn reset_signal(handle: Handle<impl Resettable>) -> Result<(), ResultCode> {
@@ -9,7 +9,7 @@ pub unsafe fn reset_signal(handle: Handle<impl Resettable>) -> Result<(), Result
   unsafe {
     asm!(
       "svc #0x17",
-      
+
       in("w0") handle.as_bits(),
       lateout("x0") error_code,
       lateout("x1") _,
@@ -26,5 +26,7 @@ pub unsafe fn reset_signal(handle: Handle<impl Resettable>) -> Result<(), Result
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

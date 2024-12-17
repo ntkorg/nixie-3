@@ -5,7 +5,7 @@ pub unsafe fn flush_entire_data_cache() -> () {
   unsafe {
     asm!(
       "svc #0x2A",
-      
+
       lateout("x0") _,
       lateout("x1") _,
       lateout("x2") _,

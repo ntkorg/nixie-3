@@ -11,7 +11,7 @@ pub fn get_thread_list(handle: Handle<Debug>, thread_ids: &mut [u64]) -> Result<
   unsafe {
     asm!(
       "svc #0x66",
-      
+
       in("x1") thread_ids.as_ptr(),
       in("x2") thread_ids.len(),
       in("x3") handle.as_bits(),
@@ -30,5 +30,7 @@ pub fn get_thread_list(handle: Handle<Debug>, thread_ids: &mut [u64]) -> Result<
     return Ok(thread_count);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

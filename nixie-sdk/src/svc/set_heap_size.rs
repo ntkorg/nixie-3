@@ -10,7 +10,7 @@ pub unsafe fn set_heap_size(size: usize) -> Result<*mut c_void, ResultCode> {
   unsafe {
     asm!(
       "svc #0x01",
-      
+
       in("x1") size,
       lateout("x0") error_code,
       lateout("x1") address,
@@ -27,7 +27,9 @@ pub unsafe fn set_heap_size(size: usize) -> Result<*mut c_void, ResultCode> {
     return Ok(address as *mut c_void);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -38,7 +40,7 @@ pub unsafe fn set_heap_size(size: usize) {
   unsafe {
     asm!(
       "svc #0x01",
-      
+
       in("w1") size,
       lateout("w0") error_code,
       lateout("w1") address,
@@ -51,5 +53,7 @@ pub unsafe fn set_heap_size(size: usize) {
     return Ok(address as *mut c_void);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

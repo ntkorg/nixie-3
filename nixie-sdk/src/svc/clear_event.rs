@@ -1,6 +1,6 @@
+use super::{Event, Handle};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Event};
 
 #[cfg(target_pointer_width = "64")]
 pub fn clear_event(thread: Handle<impl Event>) -> Result<(), ResultCode> {
@@ -9,7 +9,7 @@ pub fn clear_event(thread: Handle<impl Event>) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x12",
-      
+
       in("x0") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") _,
@@ -26,7 +26,9 @@ pub fn clear_event(thread: Handle<impl Event>) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -36,7 +38,7 @@ pub fn clear_event(thread: Handle<impl Event>) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x12",
-      
+
       in("x0") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") _,
@@ -53,5 +55,7 @@ pub fn clear_event(thread: Handle<impl Event>) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

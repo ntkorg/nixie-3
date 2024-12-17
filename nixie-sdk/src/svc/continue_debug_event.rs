@@ -1,15 +1,19 @@
+use super::{ContinueDebugFlags, Debug, Handle};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{ContinueDebugFlags, Debug, Handle};
 
 #[cfg(target_pointer_width = "64")]
-pub fn continue_debug_event(handle: Handle<Debug>, flags: ContinueDebugFlags, thread_ids: &[u64]) -> Result<(), ResultCode> {
+pub fn continue_debug_event(
+  handle: Handle<Debug>,
+  flags: ContinueDebugFlags,
+  thread_ids: &[u64],
+) -> Result<(), ResultCode> {
   let mut error_code: u32;
 
   unsafe {
     asm!(
       "svc #0x64",
-      
+
       in("x0") handle.as_bits(),
       in("x1") flags.0,
       in("x2") thread_ids.as_ptr(),
@@ -29,5 +33,7 @@ pub fn continue_debug_event(handle: Handle<Debug>, flags: ContinueDebugFlags, th
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

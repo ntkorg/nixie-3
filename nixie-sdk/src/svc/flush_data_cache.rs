@@ -1,5 +1,5 @@
-use core::arch::asm;
 use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn flush_data_cache(address: *const u8, size: u64) -> Result<(), ResultCode> {
@@ -8,7 +8,7 @@ pub fn flush_data_cache(address: *const u8, size: u64) -> Result<(), ResultCode>
   unsafe {
     asm!(
       "svc #0x2B",
-      
+
       in("x0") address as usize,
       in("x1") size,
       lateout("w0") error_code,
@@ -26,5 +26,7 @@ pub fn flush_data_cache(address: *const u8, size: u64) -> Result<(), ResultCode>
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

@@ -1,14 +1,17 @@
-use core::arch::asm;
 use super::{Handle, Process, ProcessActivity};
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn set_process_activity(process: Handle<Process>, activity: ProcessActivity) -> Result<(), crate::result::result_code::ResultCode> {
+pub unsafe fn set_process_activity(
+  process: Handle<Process>,
+  activity: ProcessActivity,
+) -> Result<(), crate::result::result_code::ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x4F",
-      
+
       in("w0") process.as_bits(),
       in("w1") activity as u32,
       lateout("x0") error_code,
@@ -26,5 +29,7 @@ pub unsafe fn set_process_activity(process: Handle<Process>, activity: ProcessAc
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

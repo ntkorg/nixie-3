@@ -1,9 +1,15 @@
-use core::arch::asm;
+use super::{
+  CreateProcessParameter, CreateProcessParameterFlagsRaw, CreateProcessParameterRaw, Handle,
+  Process,
+};
 use crate::result::result_code::ResultCode;
-use super::{CreateProcessParameterRaw, CreateProcessParameter, Handle, Process, CreateProcessParameterFlagsRaw};
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn create_process(parameters: &CreateProcessParameter, capability: &[u32]) -> Result<Handle<Process>, ResultCode> {
+pub unsafe fn create_process(
+  parameters: &CreateProcessParameter,
+  capability: &[u32],
+) -> Result<Handle<Process>, ResultCode> {
   let mut error_code: usize;
   let mut handle_bits: u32;
 
@@ -31,7 +37,7 @@ pub unsafe fn create_process(parameters: &CreateProcessParameter, capability: &[
   unsafe {
     asm!(
       "svc #0x79",
-      
+
       in("x1") &raw as *const CreateProcessParameterRaw,
       in("x2") capability.as_ptr(),
       in("x3") capability.len(),
@@ -50,5 +56,7 @@ pub unsafe fn create_process(parameters: &CreateProcessParameter, capability: &[
     return Ok(Handle::from_bits(handle_bits));
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

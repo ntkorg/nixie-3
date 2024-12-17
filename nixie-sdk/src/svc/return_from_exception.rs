@@ -4,7 +4,7 @@ pub fn break_from_exception() -> ! {
   unsafe {
     asm!(
       "svc #0x28",
-      
+
       in("w1") 1,
       options(noreturn),
     );
@@ -15,7 +15,7 @@ pub fn break_from_exception() -> ! {
 pub unsafe fn continue_from_exception() -> () {
   asm!(
     "svc #0x28",
-    
+
     in("w1") 0,
     lateout("x0") _,
     lateout("x1") _,
@@ -32,7 +32,7 @@ pub unsafe fn continue_from_exception() -> () {
 pub unsafe fn continue_from_exception() -> () {
   asm!(
     "svc #0x28",
-    
+
     in("w1") 0,
     lateout("w0") _,
     lateout("w1") _,

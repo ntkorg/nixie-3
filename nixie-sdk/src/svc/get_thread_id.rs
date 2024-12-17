@@ -1,6 +1,6 @@
-use core::arch::asm;
-use crate::result::result_code::ResultCode;
 use super::{Handle, Thread};
+use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn get_thread_id(thread: Handle<Thread>) -> Result<u64, ResultCode> {
@@ -10,7 +10,7 @@ pub fn get_thread_id(thread: Handle<Thread>) -> Result<u64, ResultCode> {
   unsafe {
     asm!(
       "svc #0x25",
-      
+
       in("w1") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") thread_id,
@@ -27,5 +27,7 @@ pub fn get_thread_id(thread: Handle<Thread>) -> Result<u64, ResultCode> {
     return Ok(thread_id);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

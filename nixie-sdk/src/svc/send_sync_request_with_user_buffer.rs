@@ -1,15 +1,18 @@
-use core::arch::asm;
-use super::{Handle, ClientSession};
+use super::{ClientSession, Handle};
 use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub fn send_sync_request_with_user_buffer(session: &Handle<ClientSession>, buffer: &mut [u8]) -> Result<(), ResultCode> {
+pub fn send_sync_request_with_user_buffer(
+  session: &Handle<ClientSession>,
+  buffer: &mut [u8],
+) -> Result<(), ResultCode> {
   let mut error_code: u32;
-  
+
   unsafe {
     asm!(
       "svc #0x22",
-      
+
       in("x0") buffer.as_mut_ptr(),
       in("x1") buffer.len(),
       in("w2") session.as_bits(),
@@ -28,5 +31,7 @@ pub fn send_sync_request_with_user_buffer(session: &Handle<ClientSession>, buffe
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

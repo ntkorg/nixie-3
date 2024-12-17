@@ -1,6 +1,6 @@
-use core::{arch::naked_asm, fmt::Write};
+use core::arch::naked_asm;
 
-use crate::svc::{Handle, Thread};
+use crate::{svc::Handle, thread::Thread};
 
 extern "Rust" {
   fn main() -> ();
@@ -12,13 +12,20 @@ extern "C" fn __nixie_entrypoint(x0: usize, x1: usize) {
     // Exception
     crate::svc::r#break::abort(0x101000, 0, 0)
   }
+  
+  if !cfg!(feature = "nnsdk_sidecar") {
+    let handle = unsafe { Handle::<crate::svc::Thread>::from_bits(x1 as u32) };
 
-  let handle = unsafe { Handle::<Thread>::from_bits(x1 as u32) };
-  let current_local_region = crate::thread::local_region::get_mut_local_region();
+    unsafe { Thread::initialize_standalone_main_thread_from_handle(handle) };
 
-  crate::svc::output_debug_string::output_debug_string("NixieSdk Initialized.");
+    crate::svc::output_debug_string::output_debug_string("NixieSdk Initialized.");
+  } else {
+    unimplemented!("Initialize the NNSDK")
+  }
 
-  unsafe { main(); }
+  unsafe {
+    main();
+  }
 }
 
 #[naked]

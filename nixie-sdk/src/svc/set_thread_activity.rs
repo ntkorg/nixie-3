@@ -1,14 +1,17 @@
-use core::arch::asm;
 use super::{Handle, Thread, ThreadActivity};
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn set_thread_activity(thread: Handle<Thread>, activity: ThreadActivity) -> Result<(), crate::result::result_code::ResultCode> {
+pub unsafe fn set_thread_activity(
+  thread: Handle<Thread>,
+  activity: ThreadActivity,
+) -> Result<(), crate::result::result_code::ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x32",
-      
+
       in("w0") thread.as_bits(),
       in("w1") activity as u32,
       lateout("x0") error_code,
@@ -26,5 +29,7 @@ pub unsafe fn set_thread_activity(thread: Handle<Thread>, activity: ThreadActivi
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

@@ -1,6 +1,6 @@
+use super::{Handle, WritableEvent};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, WritableEvent};
 
 #[cfg(target_pointer_width = "64")]
 pub fn signal_event(thread: Handle<WritableEvent>) -> Result<(), ResultCode> {
@@ -9,7 +9,7 @@ pub fn signal_event(thread: Handle<WritableEvent>) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x11",
-      
+
       in("x0") thread.as_bits(),
       lateout("x0") error_code,
       lateout("x1") _,
@@ -26,7 +26,9 @@ pub fn signal_event(thread: Handle<WritableEvent>) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
@@ -36,7 +38,7 @@ pub fn signal_event(thread: Handle<WritableEvent>) -> Result<(), ResultCode> {
   unsafe {
     asm!(
       "svc #0x11",
-      
+
       in("w0") thread.as_bits(),
       lateout("w0") error_code,
       lateout("w1") _,
@@ -49,5 +51,7 @@ pub fn signal_event(thread: Handle<WritableEvent>) -> Result<(), ResultCode> {
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

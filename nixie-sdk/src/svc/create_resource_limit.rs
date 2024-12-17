@@ -1,6 +1,6 @@
-use core::arch::asm;
-use crate::result::result_code::ResultCode;
 use super::{Handle, ResourceLimit};
+use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn create_resource_limit() -> Result<Handle<ResourceLimit>, ResultCode> {
@@ -10,7 +10,7 @@ pub fn create_resource_limit() -> Result<Handle<ResourceLimit>, ResultCode> {
   unsafe {
     asm!(
       "svc #0x7D",
-      
+
       lateout("w0") error_code,
       lateout("w1") resource_limit_handle,
       lateout("w2") _,
@@ -23,8 +23,10 @@ pub fn create_resource_limit() -> Result<Handle<ResourceLimit>, ResultCode> {
   }
 
   if error_code == 0 {
-    return Ok(unsafe {Handle::<ResourceLimit>::from_bits(resource_limit_handle) });
+    return Ok(unsafe { Handle::<ResourceLimit>::from_bits(resource_limit_handle) });
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

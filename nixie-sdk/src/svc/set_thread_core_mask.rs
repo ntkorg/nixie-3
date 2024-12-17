@@ -1,6 +1,6 @@
+use super::{Handle, Thread};
 use crate::result::result_code::ResultCode;
 use core::arch::asm;
-use super::{Handle, Thread};
 
 // core id - int32
 // ideal core
@@ -17,14 +17,18 @@ pub static USE_PROCESS_VALUE: i32 = -2;
 pub static DONT_CARE: i32 = -1;
 
 #[cfg(target_pointer_width = "64")]
-pub fn set_thread_core_mask(thread: Handle<Thread>, affinity_mask: u64, ideal_core: Option<i32>) -> Result<(), ResultCode> {
+pub fn set_thread_core_mask(
+  thread: Handle<Thread>,
+  affinity_mask: u64,
+  ideal_core: Option<i32>,
+) -> Result<(), ResultCode> {
   let mut error_code: u32;
   let ideal_core: i32 = ideal_core.unwrap_or(DONT_UPDATE);
 
   unsafe {
     asm!(
       "svc #0x0f",
-      
+
       in("x0") thread.as_bits(),
       in("x1") ideal_core,
       in("x2") affinity_mask,
@@ -43,11 +47,17 @@ pub fn set_thread_core_mask(thread: Handle<Thread>, affinity_mask: u64, ideal_co
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }
 
 #[cfg(target_pointer_width = "32")]
-pub fn set_thread_core_mask(thread: Handle<Thread>, affinity_mask: u64, ideal_core: Option<i32>) -> Result<(), ResultCode> {
+pub fn set_thread_core_mask(
+  thread: Handle<Thread>,
+  affinity_mask: u64,
+  ideal_core: Option<i32>,
+) -> Result<(), ResultCode> {
   let mut error_code: u32;
   let ideal_core: i32 = ideal_core.unwrap_or(DONT_UPDATE);
   let affinity_mask_high = (affinity_mask >> 32) as u32;
@@ -56,7 +66,7 @@ pub fn set_thread_core_mask(thread: Handle<Thread>, affinity_mask: u64, ideal_co
   unsafe {
     asm!(
       "svc #0x0f",
-      
+
       in("w0") thread.as_bits(),
       in("w1") ideal_core,
       in("w2") affinity_mask_high,
@@ -72,5 +82,7 @@ pub fn set_thread_core_mask(thread: Handle<Thread>, affinity_mask: u64, ideal_co
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

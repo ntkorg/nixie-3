@@ -5,7 +5,7 @@ pub unsafe fn sleep_system() -> () {
   unsafe {
     asm!(
       "svc #0x4D",
-      
+
       lateout("x0") _,
       lateout("x1") _,
       lateout("x2") _,

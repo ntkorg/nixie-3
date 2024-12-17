@@ -1,6 +1,6 @@
-use core::arch::asm;
-use crate::result::result_code::ResultCode;
 use super::{Handle, Process};
+use crate::result::result_code::ResultCode;
+use core::arch::asm;
 
 #[cfg(target_pointer_width = "64")]
 pub fn get_process_id(process: Handle<Process>) -> Result<u64, ResultCode> {
@@ -10,7 +10,7 @@ pub fn get_process_id(process: Handle<Process>) -> Result<u64, ResultCode> {
   unsafe {
     asm!(
       "svc #0x24",
-      
+
       in("w1") process.as_bits(),
       lateout("x0") error_code,
       lateout("x1") process_id,
@@ -27,5 +27,7 @@ pub fn get_process_id(process: Handle<Process>) -> Result<u64, ResultCode> {
     return Ok(process_id);
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

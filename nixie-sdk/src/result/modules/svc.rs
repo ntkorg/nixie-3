@@ -30,16 +30,40 @@ pub const SESSION_CLOSED: ResultCode = ResultCode::of(1, 123);
 
 pub fn get_result_description(code: u32) -> Option<ResultCodeDescription> {
   match code {
-    7   => Some(ResultCodeDescription { name: "out_of_sessions",           description: "Handle<Port> has a maximum number of sessions. This error is sent when you exceed it", namespace: None }),
-    14  => Some(ResultCodeDescription { name: "invalid_argument",          description: "A generic error sent when you provide an invalid argument", namespace: None }),
-    33  => Some(ResultCodeDescription { name: "not_implemented",           description: "This SVC is unimplemented, or is disabled on your hardware", namespace: None }),
-    54  => Some(ResultCodeDescription { name: "stop_processing_exception", description: "If the debug target is dying, the kernel cannot process the exception", namespace: None }),
+    7 => Some(ResultCodeDescription {
+      name: "out_of_sessions",
+      description:
+        "Handle<Port> has a maximum number of sessions. This error is sent when you exceed it",
+      namespace: None,
+    }),
+    14 => Some(ResultCodeDescription {
+      name: "invalid_argument",
+      description: "A generic error sent when you provide an invalid argument",
+      namespace: None,
+    }),
+    33 => Some(ResultCodeDescription {
+      name: "not_implemented",
+      description: "This SVC is unimplemented, or is disabled on your hardware",
+      namespace: None,
+    }),
+    54 => Some(ResultCodeDescription {
+      name: "stop_processing_exception",
+      description: "If the debug target is dying, the kernel cannot process the exception",
+      namespace: None,
+    }),
     // TODO: 57 - NoSynchronizationObject
-    59  => Some(ResultCodeDescription { name: "termination_requested",     description: "If the target thread is dying, the kernel cannot process the request", namespace: None }),
-    
+    59 => Some(ResultCodeDescription {
+      name: "termination_requested",
+      description: "If the target thread is dying, the kernel cannot process the request",
+      namespace: None,
+    }),
 
-    123 => Some(ResultCodeDescription { name: "session_closed",            description: "The Handle<ServerSession> or Handle<ClientSession> is closed", namespace: None }),
+    123 => Some(ResultCodeDescription {
+      name: "session_closed",
+      description: "The Handle<ServerSession> or Handle<ClientSession> is closed",
+      namespace: None,
+    }),
 
-    _ => None
+    _ => None,
   }
 }

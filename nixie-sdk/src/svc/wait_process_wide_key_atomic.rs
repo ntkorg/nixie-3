@@ -3,13 +3,18 @@ use core::arch::asm;
 use core::ffi::c_void;
 
 #[cfg(target_pointer_width = "64")]
-pub unsafe fn wait_process_wide_key_atomic(key_address: *mut c_void, tag_address: *mut c_void, tag: u32, timeout: u64) -> Result<(), ResultCode> {
+pub unsafe fn wait_process_wide_key_atomic(
+  key_address: *mut c_void,
+  tag_address: *mut c_void,
+  tag: u32,
+  timeout: u64,
+) -> Result<(), ResultCode> {
   let mut error_code: usize;
 
   unsafe {
     asm!(
       "svc #0x1C",
-      
+
       in("x0") key_address,
       in("x1") tag_address,
       in("w2") tag,
@@ -29,5 +34,7 @@ pub unsafe fn wait_process_wide_key_atomic(key_address: *mut c_void, tag_address
     return Ok(());
   }
 
-  Err(crate::result::result_code::ResultCode::from_bits(error_code as u32))
+  Err(crate::result::result_code::ResultCode::from_bits(
+    error_code as u32,
+  ))
 }

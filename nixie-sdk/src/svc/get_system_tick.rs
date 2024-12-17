@@ -7,7 +7,7 @@ pub fn get_system_tick() -> u64 {
   unsafe {
     asm!(
       "svc #0x1E",
-      
+
       lateout("x0") tick,
       lateout("x1") _,
       lateout("x2") _,
