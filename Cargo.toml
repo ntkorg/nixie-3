@@ -2,5 +2,6 @@
 members = [
   "nixie-sdk",
   "nixie-test",
+  "fileforge-horizon",
 ]
 resolver = "2"

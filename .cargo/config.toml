@@ -2,3 +2,10 @@
 unstable-options = true
 build-std = ["core", "compiler_builtins", "alloc"]
 build-std-features = ["compiler-builtins-mem"]
+
+[registry]
+global-credential-providers = ["cargo-credential-1password --account my.1password.com"]
+default = "eepy"
+
+[registries.eepy]
+index = "sparse+https://git.eepy.engineering/api/packages/NTK/cargo/"

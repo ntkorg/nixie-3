@@ -1,0 +1,11 @@
+[package]
+name = "fileforge-horizon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fileforge-lib = { version = "0.1.0", registry = "eepy" }
+fileforge-macros = { version = "0.1.0", registry = "eepy" }
+fileforge-std = { version = "0.1.0", registry = "eepy" }
+zerocopy = "0.7.32"
+zerocopy-derive = "0.7.32"
